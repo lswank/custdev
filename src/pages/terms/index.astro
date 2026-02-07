@@ -1,0 +1,58 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import TermCard from '../../components/TermCard.astro';
+import CollectionView from '../../components/CollectionView.astro';
+import type { ColumnDef, FilterDef } from '../../lib/collection-view';
+import { getCollection } from 'astro:content';
+
+const terms = await getCollection('terms');
+const sorted = terms.sort((a, b) => a.data.name.localeCompare(b.data.name));
+
+const phases = ['discovery', 'validation', 'creation', 'building'];
+const statuses = ['proposed', 'draft', 'in-review', 'published', 'deprecated', 'archived'];
+
+const columns: ColumnDef[] = [
+  { key: 'name', label: 'Name', sortable: true, primary: true, type: 'text' },
+  { key: 'custdev_phase', label: 'Phase', sortable: true, type: 'phase' },
+  { key: 'status', label: 'Status', sortable: true, type: 'badge' },
+  { key: 'owner', label: 'Owner', sortable: true, type: 'text', priority: 'low' },
+  { key: 'created', label: 'Created', sortable: true, type: 'date', priority: 'low' },
+];
+
+const filters: FilterDef[] = [
+  { key: 'custdev_phase', label: 'Phase', options: phases },
+  { key: 'status', label: 'Status', options: statuses },
+];
+---
+
+<BaseLayout title="Terms — CustDev Wiki">
+  <h1>Terms</h1>
+  <p class="subtitle">Every concept that matters to the organization, defined and versioned.</p>
+
+  <CollectionView
+    items={sorted}
+    columns={columns}
+    filters={filters}
+    basePath="/terms"
+    emptyMessage="No terms found."
+  >
+    {sorted.map((term) => (
+      <div data-cv-id={term.id}>
+        <TermCard
+          name={term.data.name}
+          slug={term.id}
+          phase={term.data.custdev_phase}
+          status={term.data.status}
+          aliases={term.data.aliases}
+        />
+      </div>
+    ))}
+  </CollectionView>
+</BaseLayout>
+
+<style>
+  .subtitle {
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+  }
+</style>

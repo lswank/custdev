@@ -1,0 +1,19 @@
+services:
+  wiki:
+    build:
+      dockerfile: Dockerfile.dev
+    environment:
+      - NODE_ENV=test
+      - JWT_SECRET=test-secret
+    healthcheck:
+      test: ["CMD", "wget", "--spider", "-q", "http://localhost:4321"]
+      interval: 5s
+      timeout: 5s
+      retries: 12
+      start_period: 30s
+
+  playwright:
+    profiles: []
+    depends_on:
+      wiki:
+        condition: service_healthy

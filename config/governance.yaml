@@ -1,0 +1,21 @@
+review:
+  staleness_threshold_days: 90
+  min_reviewers: 1
+  require_external_reviewer: true
+
+quality:
+  min_terms_per_product: 5
+  reading_level_target: 8
+  reading_level_hard_limit: 12
+  require_definition_method: true
+  require_custdev_phase: true
+
+alignment:
+  quarterly_review: true
+  divergence_report_schedule: "0 9 1 */3 *"
+  dispute_resolution_days: 30
+
+notifications:
+  channel: "webhook"
+  webhook_url: ""
+  notify_on: [staleness, orphan, dispute, publish]

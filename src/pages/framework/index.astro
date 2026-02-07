@@ -1,0 +1,94 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import { getCollection } from 'astro:content';
+import { getSiteConfig } from '../../lib/config.js';
+
+const config = getSiteConfig();
+const frameworks = await getCollection('frameworks');
+const overview = frameworks.find((f) => f.id === 'overview');
+const phases = frameworks
+  .filter((f) => f.id !== 'overview')
+  .sort((a, b) => (a.data.order || 0) - (b.data.order || 0));
+
+const OverviewContent = overview ? (await overview.render()).Content : null;
+---
+
+<BaseLayout title="Customer Development Framework — CustDev Wiki">
+  <h1>Customer Development Framework</h1>
+
+  {OverviewContent && (
+    <article class="overview">
+      <OverviewContent />
+    </article>
+  )}
+
+  <section class="phase-list">
+    <h2>Explore Each Phase</h2>
+    <div class="phase-grid">
+      {config.custdev.phases.map((phase, i) => (
+        <a
+          href={`/framework/${phase.slug}`}
+          class="phase-card"
+          style={`--phase-color: ${phase.color}`}
+        >
+          <span class="phase-number">{i + 1}</span>
+          <h3>{phase.label}</h3>
+          <p>Default confidence: <strong>{phase.default_confidence}</strong></p>
+        </a>
+      ))}
+    </div>
+  </section>
+</BaseLayout>
+
+<style>
+  .overview {
+    margin-bottom: 3rem;
+  }
+
+  .phase-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+    gap: 1rem;
+  }
+
+  .phase-card {
+    display: block;
+    padding: 1.5rem;
+    border: 2px solid var(--phase-color);
+    border-radius: 8px;
+    text-decoration: none;
+    color: var(--color-text);
+    transition: transform 0.15s, box-shadow 0.15s;
+  }
+
+  .phase-card:hover {
+    transform: translateY(-2px);
+    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    text-decoration: none;
+  }
+
+  .phase-number {
+    display: inline-block;
+    width: 28px;
+    height: 28px;
+    line-height: 28px;
+    text-align: center;
+    background: var(--phase-color);
+    color: white;
+    border-radius: 50%;
+    font-weight: 700;
+    font-size: 0.85rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .phase-card h3 {
+    margin: 0.5rem 0;
+    color: var(--phase-color);
+  }
+
+  .phase-card p {
+    margin: 0;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+</style>

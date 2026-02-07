@@ -1,0 +1,38 @@
+company:
+  name: "Your Company"
+  logo: "/assets/logo.svg"
+  tagline: "What we know, how we know it, and why it matters"
+
+wiki:
+  title: "Product Wiki"
+  base_url: "http://localhost:4321"
+  default_language: "en"
+  reading_level_target: 8
+
+custdev:
+  phases:
+    - slug: discovery
+      label: "Customer Discovery"
+      color: "#4A90D9"
+      icon: "magnifying-glass"
+      default_confidence: "hypothesis"
+    - slug: validation
+      label: "Customer Validation"
+      color: "#7B68EE"
+      icon: "clipboard-check"
+      default_confidence: "tested"
+    - slug: creation
+      label: "Customer Creation"
+      color: "#50C878"
+      icon: "megaphone"
+      default_confidence: "proven"
+    - slug: building
+      label: "Company Building"
+      color: "#FF8C00"
+      icon: "building"
+      default_confidence: "canonical"
+
+cms:
+  enabled: true
+  backend: "local"
+  editorial_workflow: true

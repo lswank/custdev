@@ -1,0 +1,86 @@
+---
+interface Props {
+  terms?: Array<{
+    id: string;
+    data: { name: string };
+  }>;
+  methods?: Array<{
+    id: string;
+    data: { name: string };
+  }>;
+}
+
+const { terms = [], methods = [] } = Astro.props;
+const hasContent = terms.length > 0 || methods.length > 0;
+---
+
+{hasContent && (
+  <div class="related-content">
+    {terms.length > 0 && (
+      <div class="related-section">
+        <h4 class="related-heading">Related Terms</h4>
+        <ul class="related-list">
+          {terms.map((term) => (
+            <li>
+              <a href={`/terms/${term.id}`}>{term.data.name}</a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+    {methods.length > 0 && (
+      <div class="related-section">
+        <h4 class="related-heading">Related Methods</h4>
+        <ul class="related-list">
+          {methods.map((method) => (
+            <li>
+              <a href="/methods">{method.data.name}</a>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+  </div>
+)}
+
+<style>
+  .related-content {
+    padding: 1.25rem;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+  }
+
+  .related-section + .related-section {
+    margin-top: 1.25rem;
+    padding-top: 1.25rem;
+    border-top: 1px solid var(--color-border);
+  }
+
+  .related-heading {
+    margin: 0 0 0.5rem 0;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--color-text-muted);
+  }
+
+  .related-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 0.35rem;
+  }
+
+  .related-list a {
+    font-size: 0.9rem;
+    color: var(--color-link);
+    text-decoration: none;
+  }
+
+  .related-list a:hover {
+    text-decoration: underline;
+  }
+</style>

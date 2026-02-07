@@ -1,0 +1,73 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import EntityCard from '../../components/EntityCard.astro';
+import CollectionView from '../../components/CollectionView.astro';
+import type { ColumnDef, FilterDef } from '../../lib/collection-view';
+import { getCollection } from 'astro:content';
+
+const entities = await getCollection('entities');
+const sorted = entities.sort((a, b) => a.data.name.localeCompare(b.data.name));
+const nameBySlug = new Map(sorted.map((entity) => [entity.id, entity.data.name]));
+const viewItems = sorted.map((entity) => ({
+  ...entity,
+  data: {
+    ...entity.data,
+    parent_label: entity.data.parent
+      ? nameBySlug.get(entity.data.parent) ?? entity.data.parent
+      : undefined,
+  },
+}));
+
+const statusOptions = Array.from(
+  new Set(sorted.map((entity) => entity.data.status).filter(Boolean))
+).sort() as string[];
+const relationshipOptions = Array.from(
+  new Set(sorted.map((entity) => entity.data.relationship).filter(Boolean))
+).sort() as string[];
+
+const columns: ColumnDef[] = [
+  { key: 'name', label: 'Name', sortable: true, primary: true, type: 'text' },
+  { key: 'status', label: 'Status', sortable: true, type: 'badge' },
+  { key: 'jurisdiction', label: 'Jurisdiction', sortable: true, type: 'text', priority: 'low' },
+  { key: 'relationship', label: 'Relationship', sortable: true, type: 'text' },
+  { key: 'parent_label', label: 'Parent', sortable: true, type: 'text', priority: 'low' },
+];
+
+const filters: FilterDef[] = [
+  { key: 'status', label: 'Status', options: statusOptions },
+  { key: 'relationship', label: 'Relationship', options: relationshipOptions },
+];
+---
+
+<BaseLayout title="Entities — CustDev Wiki">
+  <h1>Entities</h1>
+  <p class="subtitle">Subsidiaries, partners, and investments across HEAL Group Holdings.</p>
+
+  <CollectionView
+    items={viewItems}
+    columns={columns}
+    filters={filters}
+    basePath="/entities"
+    emptyMessage="No entities yet."
+  >
+    {viewItems.map((entity) => (
+      <div data-cv-id={entity.id}>
+        <EntityCard
+          name={entity.data.name}
+          slug={entity.id}
+          status={entity.data.status}
+          jurisdiction={entity.data.jurisdiction}
+          relationship={entity.data.relationship}
+          entity_type={entity.data.entity_type}
+        />
+      </div>
+    ))}
+  </CollectionView>
+</BaseLayout>
+
+<style>
+  .subtitle {
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+  }
+</style>

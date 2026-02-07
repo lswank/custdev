@@ -1,0 +1,61 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import RepoCard from '../../components/RepoCard.astro';
+import CollectionView from '../../components/CollectionView.astro';
+import type { ColumnDef, FilterDef } from '../../lib/collection-view';
+import { getCollection } from 'astro:content';
+
+const repositories = await getCollection('repositories');
+const sorted = repositories.sort((a, b) => a.data.name.localeCompare(b.data.name));
+
+const languageOptions = Array.from(
+  new Set(sorted.map((repo) => repo.data.language).filter(Boolean))
+).sort() as string[];
+const statusOptions = Array.from(
+  new Set(sorted.map((repo) => repo.data.status).filter(Boolean))
+).sort() as string[];
+
+const columns: ColumnDef[] = [
+  { key: 'name', label: 'Name', sortable: true, primary: true, type: 'text' },
+  { key: 'language', label: 'Language', sortable: true, type: 'text' },
+  { key: 'status', label: 'Status', sortable: true, type: 'badge' },
+  { key: 'description', label: 'Description', sortable: false, type: 'text', priority: 'low' },
+];
+
+const filters: FilterDef[] = [
+  { key: 'status', label: 'Status', options: statusOptions },
+  { key: 'language', label: 'Language', options: languageOptions },
+];
+---
+
+<BaseLayout title="Repositories — CustDev Wiki">
+  <h1>Repositories</h1>
+  <p class="subtitle">All codebases, their tech stacks, and contributors.</p>
+
+  <CollectionView
+    items={sorted}
+    columns={columns}
+    filters={filters}
+    basePath="/repositories"
+    emptyMessage="No repositories yet."
+  >
+    {sorted.map((repo) => (
+      <div data-cv-id={repo.id}>
+        <RepoCard
+          name={repo.data.name}
+          slug={repo.id}
+          language={repo.data.language}
+          description={repo.data.description}
+          status={repo.data.status}
+        />
+      </div>
+    ))}
+  </CollectionView>
+</BaseLayout>
+
+<style>
+  .subtitle {
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+  }
+</style>

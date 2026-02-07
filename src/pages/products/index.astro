@@ -1,0 +1,57 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProductCard from '../../components/ProductCard.astro';
+import CollectionView from '../../components/CollectionView.astro';
+import type { ColumnDef, FilterDef } from '../../lib/collection-view';
+import { getCollection } from 'astro:content';
+
+const products = await getCollection('products');
+
+const phases = ['discovery', 'validation', 'creation', 'building'];
+const statuses = ['active', 'sunset', 'planned'];
+
+const columns: ColumnDef[] = [
+  { key: 'name', label: 'Name', sortable: true, primary: true, type: 'text' },
+  { key: 'custdev_phase', label: 'Phase', sortable: true, type: 'phase' },
+  { key: 'status', label: 'Status', sortable: true, type: 'badge' },
+  { key: 'description', label: 'Description', sortable: false, type: 'text', priority: 'low' },
+];
+
+const filters: FilterDef[] = [
+  { key: 'custdev_phase', label: 'Phase', options: phases },
+  { key: 'status', label: 'Status', options: statuses },
+];
+---
+
+<BaseLayout title="Products — CustDev Wiki">
+  <h1>Products</h1>
+  <p class="subtitle">Each product is a scoping boundary for definitions and terms.</p>
+
+  <CollectionView
+    items={products}
+    columns={columns}
+    filters={filters}
+    basePath="/products"
+    cardMin={350}
+    emptyMessage="No products configured yet."
+  >
+    {products.map((product) => (
+      <div data-cv-id={product.id}>
+        <ProductCard
+          name={product.data.name}
+          slug={product.id}
+          phase={product.data.custdev_phase}
+          status={product.data.status}
+          description={product.data.description}
+        />
+      </div>
+    ))}
+  </CollectionView>
+</BaseLayout>
+
+<style>
+  .subtitle {
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+  }
+</style>

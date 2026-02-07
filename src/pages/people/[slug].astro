@@ -1,0 +1,361 @@
+---
+import ContentLayout from '../../layouts/ContentLayout.astro';
+import StatusBadge from '../../components/StatusBadge.astro';
+import { getCollection } from 'astro:content';
+
+const { slug } = Astro.params;
+
+const people = await getCollection('people');
+const person = people.find((p) => p.id === slug);
+
+if (!person) {
+  return Astro.redirect('/404');
+}
+
+const entities = await getCollection('entities');
+const companyEntity = person.data.company
+  ? entities.find((entity) => entity.id === person.data.company)
+  : undefined;
+const reportsTo = person.data.reports_to
+  ? people.find((p) => p.id === person.data.reports_to)
+  : undefined;
+
+const { Content } = await person.render();
+
+const formatRange = (start?: Date, end?: Date) => {
+  if (start && end) return `${start.toLocaleDateString()} — ${end.toLocaleDateString()}`;
+  if (start) return `${start.toLocaleDateString()} — Present`;
+  if (end) return end.toLocaleDateString();
+  return '';
+};
+
+const linkedinUrl = person.data.linkedin
+  ? person.data.linkedin.startsWith('http')
+    ? person.data.linkedin
+    : `https://linkedin.com/in/${person.data.linkedin}`
+  : undefined;
+
+const breadcrumbs = [
+  { label: 'Home', href: '/' },
+  { label: 'Team', href: '/people' },
+  { label: person.data.name },
+];
+---
+
+<ContentLayout
+  title={`${person.data.name} — CustDev Wiki`}
+  breadcrumbs={breadcrumbs}
+>
+  <div class="person-header">
+    <h1>{person.data.name}</h1>
+    <div class="meta">
+      <StatusBadge status={person.data.status} />
+      <span class="role">{person.data.role}</span>
+    </div>
+    {person.data.title && (
+      <p class="person-title">{person.data.title}</p>
+    )}
+  </div>
+
+  {person.data.expertise.length > 0 && (
+    <section class="expertise-section">
+      <h2>Expertise</h2>
+      <ul class="tag-list">
+        {person.data.expertise.map((skill) => (
+          <li class="tag-pill">{skill}</li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {person.data.github && (
+    <section class="github-section">
+      <h2>GitHub</h2>
+      <a href={`https://github.com/${person.data.github}`} target="_blank" rel="noopener noreferrer">
+        @{person.data.github}
+      </a>
+    </section>
+  )}
+
+  {person.data.repos.length > 0 && (
+    <section class="repos-section">
+      <h2>Repositories</h2>
+      <ul class="repo-list">
+        {person.data.repos.map((repo) => (
+          <li>{repo}</li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {person.data.previous_roles.length > 0 && (
+    <section class="history-section">
+      <h2>Previous Roles</h2>
+      <ul class="history-list">
+        {person.data.previous_roles.map((role) => (
+          <li>
+            <div class="history-header">
+              <strong>{role.title}</strong>
+              {role.company && <span class="history-company">{role.company}</span>}
+            </div>
+            {formatRange(role.start_date, role.end_date) && (
+              <div class="history-dates">{formatRange(role.start_date, role.end_date)}</div>
+            )}
+            {role.summary && <p class="history-summary">{role.summary}</p>}
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {person.data.education.length > 0 && (
+    <section class="history-section">
+      <h2>Education</h2>
+      <ul class="history-list">
+        {person.data.education.map((edu) => (
+          <li>
+            <div class="history-header">
+              <strong>{edu.institution}</strong>
+              {edu.degree && (
+                <span class="history-company">
+                  {edu.degree}{edu.field ? `, ${edu.field}` : ''}
+                </span>
+              )}
+            </div>
+            {formatRange(edu.start_date, edu.end_date) && (
+              <div class="history-dates">{formatRange(edu.start_date, edu.end_date)}</div>
+            )}
+            {edu.notes && <p class="history-summary">{edu.notes}</p>}
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  <article class="person-content" data-pagefind-body>
+    <Content />
+  </article>
+
+  <Fragment slot="sidebar">
+    <div class="sidebar-section">
+      <h3>Details</h3>
+      <dl>
+        <dt>Role</dt>
+        <dd>{person.data.role}</dd>
+        {person.data.title && (
+          <>
+            <dt>Title</dt>
+            <dd>{person.data.title}</dd>
+          </>
+        )}
+        <dt>Status</dt>
+        <dd><StatusBadge status={person.data.status} /></dd>
+        {person.data.company && (
+          <>
+            <dt>Company</dt>
+            <dd>
+              <a href={`/entities/${person.data.company}`}>
+                {companyEntity ? companyEntity.data.name : person.data.company}
+              </a>
+            </dd>
+          </>
+        )}
+        {person.data.department && (
+          <>
+            <dt>Department</dt>
+            <dd>{person.data.department}</dd>
+          </>
+        )}
+        {person.data.reports_to && (
+          <>
+            <dt>Reports To</dt>
+            <dd>
+              <a href={`/people/${person.data.reports_to}`}>
+                {reportsTo ? reportsTo.data.name : person.data.reports_to}
+              </a>
+            </dd>
+          </>
+        )}
+        {person.data.start_date && (
+          <>
+            <dt>Start Date</dt>
+            <dd>{person.data.start_date.toLocaleDateString()}</dd>
+          </>
+        )}
+        {person.data.end_date && (
+          <>
+            <dt>End Date</dt>
+            <dd>{person.data.end_date.toLocaleDateString()}</dd>
+          </>
+        )}
+        {person.data.location && (
+          <>
+            <dt>Location</dt>
+            <dd>{person.data.location}</dd>
+          </>
+        )}
+        {linkedinUrl && (
+          <>
+            <dt>LinkedIn</dt>
+            <dd>
+              <a href={linkedinUrl} target="_blank" rel="noopener noreferrer">
+                {person.data.linkedin}
+              </a>
+            </dd>
+          </>
+        )}
+        {person.data.timezone && (
+          <>
+            <dt>Timezone</dt>
+            <dd>{person.data.timezone}</dd>
+          </>
+        )}
+        {person.data.disc_profile && (
+          <>
+            <dt>DiSC Profile</dt>
+            <dd>{person.data.disc_profile}</dd>
+          </>
+        )}
+        {person.data.mbti && (
+          <>
+            <dt>MBTI</dt>
+            <dd>{person.data.mbti}</dd>
+          </>
+        )}
+        {person.data.github && (
+          <>
+            <dt>GitHub</dt>
+            <dd>
+              <a href={`https://github.com/${person.data.github}`} target="_blank" rel="noopener noreferrer">
+                @{person.data.github}
+              </a>
+            </dd>
+          </>
+        )}
+      </dl>
+    </div>
+  </Fragment>
+</ContentLayout>
+
+<style>
+  .person-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .person-header h1 {
+    margin: 0 0 0.5rem;
+  }
+
+  .meta {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .role {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+  }
+
+  .person-title {
+    color: var(--color-text-muted);
+    font-style: italic;
+    margin: 0;
+  }
+
+  .expertise-section,
+  .github-section,
+  .repos-section,
+  .history-section {
+    margin: 1.5rem 0;
+  }
+
+  .tag-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .tag-pill {
+    font-size: 0.8rem;
+    padding: 0.3em 0.7em;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    color: var(--color-text-muted);
+  }
+
+  .repo-list {
+    margin: 0.5rem 0 0 1.25rem;
+    padding: 0;
+  }
+
+  .repo-list li {
+    margin-bottom: 0.25rem;
+  }
+
+  .history-list {
+    list-style: none;
+    padding: 0;
+    margin: 0.75rem 0 0;
+    display: grid;
+    gap: 0.75rem;
+  }
+
+  .history-list li {
+    padding: 0.75rem;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-bg-secondary);
+  }
+
+  .history-header {
+    display: flex;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+  }
+
+  .history-company {
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+  }
+
+  .history-dates {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+    margin-top: 0.25rem;
+  }
+
+  .history-summary {
+    margin: 0.5rem 0 0;
+    font-size: 0.9rem;
+  }
+
+  .sidebar-section h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+  }
+
+  dl {
+    margin: 0;
+  }
+
+  dt {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin-top: 0.75rem;
+  }
+
+  dd {
+    margin: 0.25rem 0 0 0;
+  }
+</style>

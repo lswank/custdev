@@ -1,0 +1,54 @@
+---
+interface Props {
+  status: string;
+}
+
+const { status } = Astro.props;
+
+const titleCase = (str: string) =>
+  str.replace(/-/g, ' ').replace(/\b\w/g, (c) => c.toUpperCase());
+
+const statusColorMap: Record<string, string> = {
+  published: '#1e7e34',
+  active: '#1e7e34',
+  accepted: '#1e7e34',
+  draft: '#888',
+  proposed: '#888',
+  'in-review': '#c49000',
+  evaluating: '#c49000',
+  deprecated: '#c0392b',
+  superseded: '#c0392b',
+  inactive: '#999',
+  dissolved: '#c0392b',
+  acquired: '#7B68EE',
+  planned: '#c49000',
+  divested: '#999',
+  archived: '#999',
+  experimental: '#7B68EE',
+  alumni: '#999',
+  contractor: '#4A90D9',
+};
+
+const color = statusColorMap[status.toLowerCase()] ?? '#888';
+---
+
+<span
+  class="status-badge"
+  style={`--badge-color: ${color};`}
+>
+  {titleCase(status)}
+</span>
+
+<style>
+  .status-badge {
+    display: inline-block;
+    font-size: 0.7rem;
+    font-weight: 600;
+    padding: 0.2em 0.6em;
+    border-radius: 4px;
+    white-space: nowrap;
+    line-height: 1;
+    background: color-mix(in srgb, var(--badge-color) 15%, transparent);
+    color: var(--badge-color);
+  }
+</style>

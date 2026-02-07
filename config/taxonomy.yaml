@@ -1,0 +1,33 @@
+custdev_phases:
+  - discovery
+  - validation
+  - creation
+  - building
+
+content_status:
+  - draft
+  - in-review
+  - published
+  - deprecated
+  - archived
+
+audience_tags:
+  - engineering
+  - product
+  - marketing
+  - leadership
+  - all
+
+confidence_levels:
+  - slug: hypothesis
+    label: "Hypothesis"
+    description: "Discovery phase, untested"
+  - slug: tested
+    label: "Tested"
+    description: "Validation phase, some evidence"
+  - slug: proven
+    label: "Proven"
+    description: "Creation/Building phase, strong evidence"
+  - slug: canonical
+    label: "Canonical"
+    description: "Company Building phase, this is how we do it"

@@ -1,0 +1,106 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+
+// If already logged in, redirect to home
+if (Astro.locals.user) {
+  return Astro.redirect('/');
+}
+
+const error = Astro.url.searchParams.get('error');
+---
+
+<BaseLayout title="Login — CustDev Wiki">
+  <div class="login-container">
+    <h1>Sign In</h1>
+    <p>Log in to access the CustDev Wiki admin and editing features.</p>
+
+    {error && <div class="error" role="alert">{error}</div>}
+
+    <form method="POST" action="/api/auth/login">
+      <div class="field">
+        <label for="username">Username</label>
+        <input
+          type="text"
+          id="username"
+          name="username"
+          required
+          autocomplete="username"
+        />
+      </div>
+
+      <div class="field">
+        <label for="password">Password</label>
+        <input
+          type="password"
+          id="password"
+          name="password"
+          required
+          autocomplete="current-password"
+        />
+      </div>
+
+      <button type="submit">Sign In</button>
+    </form>
+  </div>
+</BaseLayout>
+
+<style>
+  .login-container {
+    max-width: 400px;
+    margin: 4rem auto;
+    padding: 2rem;
+  }
+
+  h1 {
+    margin-bottom: 0.5rem;
+  }
+
+  p {
+    color: #666;
+    margin-bottom: 2rem;
+  }
+
+  .field {
+    margin-bottom: 1.5rem;
+  }
+
+  label {
+    display: block;
+    margin-bottom: 0.5rem;
+    font-weight: 600;
+  }
+
+  input {
+    width: 100%;
+    padding: 0.75rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+    box-sizing: border-box;
+  }
+
+  button {
+    width: 100%;
+    padding: 0.75rem;
+    background: #4A90D9;
+    color: white;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    font-weight: 600;
+  }
+
+  button:hover {
+    background: #3a7bc8;
+  }
+
+  .error {
+    background: #fee;
+    border: 1px solid #fcc;
+    color: #c33;
+    padding: 0.75rem;
+    border-radius: 4px;
+    margin-bottom: 1.5rem;
+  }
+</style>

@@ -1,0 +1,336 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import {
+  getContentStats,
+  getStalenessReport,
+  getOrphanReport,
+  getCoverageReport,
+} from '../../lib/governance';
+
+// Auth guard: admin only
+if (!Astro.locals.user || Astro.locals.user.role !== 'admin') {
+  return Astro.redirect('/login');
+}
+
+const stats = getContentStats();
+const staleness = getStalenessReport(90);
+const orphans = getOrphanReport();
+const coverage = getCoverageReport();
+---
+
+<BaseLayout title="Governance Dashboard — CustDev Wiki">
+  <div class="governance">
+    <h1>Governance Dashboard</h1>
+    <p class="subtitle">Content health and quality overview.</p>
+
+    <!-- Content Stats -->
+    <section class="section">
+      <h2>Content Stats</h2>
+      <div class="stats-grid">
+        <div class="stat-card">
+          <span class="stat-value">{stats.terms}</span>
+          <span class="stat-label">Terms</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value">{stats.definitions}</span>
+          <span class="stat-label">Definitions</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value">{stats.products}</span>
+          <span class="stat-label">Products</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value">{stats.methods}</span>
+          <span class="stat-label">Methods</span>
+        </div>
+        <div class="stat-card">
+          <span class="stat-value">{stats.versions}</span>
+          <span class="stat-label">Versions</span>
+        </div>
+      </div>
+    </section>
+
+    <!-- Terms per Phase -->
+    <section class="section">
+      <h2>Terms per Phase</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Phase</th>
+            <th>Count</th>
+          </tr>
+        </thead>
+        <tbody>
+          {Object.entries(stats.termsPerPhase).map(([phase, count]) => (
+            <tr>
+              <td><span class={`phase-badge phase-${phase}`}>{phase}</span></td>
+              <td>{count}</td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+
+    <!-- Staleness Warnings -->
+    <section class="section">
+      <h2>
+        Staleness Warnings
+        {staleness.length > 0 && <span class="badge badge-warning">{staleness.length}</span>}
+      </h2>
+      {staleness.length === 0 ? (
+        <p class="status-ok">All definitions are up to date.</p>
+      ) : (
+        <table class="data-table">
+          <thead>
+            <tr>
+              <th>Term</th>
+              <th>Product</th>
+              <th>Last Validated</th>
+              <th>Days Ago</th>
+            </tr>
+          </thead>
+          <tbody>
+            {staleness.map((s) => (
+              <tr>
+                <td>{s.term}</td>
+                <td>{s.product}</td>
+                <td>{s.lastValidated ?? 'never'}</td>
+                <td>{s.daysSinceValidation !== null ? s.daysSinceValidation : '—'}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      )}
+    </section>
+
+    <!-- Orphan Report -->
+    <section class="section">
+      <h2>
+        Orphan Report
+        {(orphans.termsWithoutDefinitions.length + orphans.definitionsWithoutTerms.length) > 0 && (
+          <span class="badge badge-error">
+            {orphans.termsWithoutDefinitions.length + orphans.definitionsWithoutTerms.length}
+          </span>
+        )}
+      </h2>
+      {orphans.termsWithoutDefinitions.length === 0 && orphans.definitionsWithoutTerms.length === 0 ? (
+        <p class="status-ok">No orphaned content found.</p>
+      ) : (
+        <div>
+          {orphans.termsWithoutDefinitions.length > 0 && (
+            <div class="orphan-group">
+              <h3>Terms without definitions</h3>
+              <ul>
+                {orphans.termsWithoutDefinitions.map((t) => (
+                  <li>{t}</li>
+                ))}
+              </ul>
+            </div>
+          )}
+          {orphans.definitionsWithoutTerms.length > 0 && (
+            <div class="orphan-group">
+              <h3>Definitions without matching terms</h3>
+              <ul>
+                {orphans.definitionsWithoutTerms.map((d) => (
+                  <li>{d.file} (references term "{d.term}")</li>
+                ))}
+              </ul>
+            </div>
+          )}
+        </div>
+      )}
+    </section>
+
+    <!-- Coverage per Product -->
+    <section class="section">
+      <h2>Coverage per Product</h2>
+      <table class="data-table">
+        <thead>
+          <tr>
+            <th>Product</th>
+            <th>Covered</th>
+            <th>Total Terms</th>
+            <th>Coverage</th>
+          </tr>
+        </thead>
+        <tbody>
+          {coverage.products.map((c) => (
+            <tr>
+              <td>{c.product}</td>
+              <td>{c.coveredTerms}</td>
+              <td>{c.totalTerms}</td>
+              <td>
+                <div class="coverage-bar-container">
+                  <div class="coverage-bar" style={`width: ${c.coveragePercent}%`}></div>
+                  <span class="coverage-label">{c.coveragePercent}%</span>
+                </div>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </section>
+  </div>
+</BaseLayout>
+
+<style>
+  .governance {
+    max-width: 900px;
+    margin: 0 auto;
+  }
+
+  .subtitle {
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+  }
+
+  .section {
+    margin-bottom: 2.5rem;
+  }
+
+  .section h2 {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-top: 0;
+  }
+
+  /* Stats grid */
+  .stats-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 1rem;
+  }
+
+  .stat-card {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 1.25rem;
+    text-align: center;
+  }
+
+  .stat-value {
+    display: block;
+    font-size: 2rem;
+    font-weight: 700;
+    line-height: 1.2;
+  }
+
+  .stat-label {
+    display: block;
+    color: var(--color-text-muted);
+    font-size: 0.85rem;
+    margin-top: 0.25rem;
+  }
+
+  /* Data table */
+  .data-table {
+    width: 100%;
+    border-collapse: collapse;
+  }
+
+  .data-table th,
+  .data-table td {
+    padding: 0.6rem 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .data-table th {
+    background: var(--color-bg-secondary);
+    font-weight: 600;
+    font-size: 0.85rem;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+  }
+
+  .data-table tbody tr:hover {
+    background: var(--color-bg-secondary);
+  }
+
+  /* Badges */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 1.5rem;
+    height: 1.5rem;
+    padding: 0 0.4rem;
+    border-radius: 999px;
+    font-size: 0.75rem;
+    font-weight: 700;
+    color: white;
+  }
+
+  .badge-warning {
+    background: #e67e22;
+  }
+
+  .badge-error {
+    background: #e74c3c;
+  }
+
+  /* Phase badges */
+  .phase-badge {
+    display: inline-block;
+    padding: 0.15rem 0.6rem;
+    border-radius: 4px;
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: white;
+  }
+
+  .phase-discovery { background: var(--color-discovery); }
+  .phase-validation { background: var(--color-validation); }
+  .phase-creation { background: var(--color-creation); }
+  .phase-building { background: var(--color-building); }
+
+  /* Status ok */
+  .status-ok {
+    color: #27ae60;
+    font-weight: 500;
+  }
+
+  /* Orphan groups */
+  .orphan-group {
+    margin-bottom: 1rem;
+  }
+
+  .orphan-group h3 {
+    font-size: 0.95rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .orphan-group ul {
+    margin: 0;
+    padding-left: 1.5rem;
+  }
+
+  .orphan-group li {
+    padding: 0.2rem 0;
+    font-size: 0.9rem;
+  }
+
+  /* Coverage bar */
+  .coverage-bar-container {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    width: 100%;
+  }
+
+  .coverage-bar {
+    height: 8px;
+    background: var(--color-link);
+    border-radius: 4px;
+    min-width: 2px;
+    transition: width 0.3s ease;
+  }
+
+  .coverage-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+</style>

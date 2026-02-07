@@ -1,0 +1,157 @@
+---
+import ContentLayout from '../../layouts/ContentLayout.astro';
+import StatusBadge from '../../components/StatusBadge.astro';
+import { getCollection } from 'astro:content';
+
+const { slug } = Astro.params;
+
+const processes = await getCollection('processes');
+const process = processes.find((p) => p.id === slug);
+
+if (!process) {
+  return Astro.redirect('/404');
+}
+
+const { Content } = await process.render();
+
+const categoryLabel = process.data.category.charAt(0).toUpperCase() + process.data.category.slice(1);
+
+const breadcrumbs = [
+  { label: 'Home', href: '/' },
+  { label: 'Processes', href: '/processes' },
+  { label: process.data.title },
+];
+---
+
+<ContentLayout
+  title={`${process.data.title} — CustDev Wiki`}
+  breadcrumbs={breadcrumbs}
+>
+  <div class="process-header">
+    <h1>{process.data.title}</h1>
+    <div class="meta">
+      <StatusBadge status={process.data.status} />
+      <span class="category">{categoryLabel}</span>
+    </div>
+  </div>
+
+  {process.data.owner && (
+    <section class="owner-section">
+      <h2>Owner</h2>
+      <p>{process.data.owner}</p>
+    </section>
+  )}
+
+  {process.data.tools.length > 0 && (
+    <section class="tools-section">
+      <h2>Tools</h2>
+      <ul class="tag-list">
+        {process.data.tools.map((tool) => (
+          <li class="tag-pill">{tool}</li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  <article class="process-content" data-pagefind-body>
+    <Content />
+  </article>
+
+  <Fragment slot="sidebar">
+    <div class="sidebar-section">
+      <h3>Details</h3>
+      <dl>
+        <dt>Category</dt>
+        <dd>{categoryLabel}</dd>
+        <dt>Status</dt>
+        <dd><StatusBadge status={process.data.status} /></dd>
+        {process.data.owner && (
+          <>
+            <dt>Owner</dt>
+            <dd>{process.data.owner}</dd>
+          </>
+        )}
+        {process.data.last_updated && (
+          <>
+            <dt>Last Updated</dt>
+            <dd>{process.data.last_updated.toLocaleDateString()}</dd>
+          </>
+        )}
+        {process.data.tools.length > 0 && (
+          <>
+            <dt>Tools</dt>
+            <dd>{process.data.tools.join(', ')}</dd>
+          </>
+        )}
+      </dl>
+    </div>
+  </Fragment>
+</ContentLayout>
+
+<style>
+  .process-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .process-header h1 {
+    margin: 0 0 0.5rem;
+  }
+
+  .meta {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .category {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+  }
+
+  .owner-section,
+  .tools-section {
+    margin: 1.5rem 0;
+  }
+
+  .tag-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .tag-pill {
+    font-size: 0.8rem;
+    padding: 0.3em 0.7em;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    color: var(--color-text-muted);
+  }
+
+  .sidebar-section h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+  }
+
+  dl {
+    margin: 0;
+  }
+
+  dt {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin-top: 0.75rem;
+  }
+
+  dd {
+    margin: 0.25rem 0 0 0;
+  }
+</style>

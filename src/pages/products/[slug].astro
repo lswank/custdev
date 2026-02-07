@@ -1,0 +1,148 @@
+---
+import ContentLayout from '../../layouts/ContentLayout.astro';
+import PhaseIndicator from '../../components/PhaseIndicator.astro';
+import StatusBadge from '../../components/StatusBadge.astro';
+import TermCard from '../../components/TermCard.astro';
+import { getCollection } from 'astro:content';
+
+const { slug } = Astro.params;
+
+const products = await getCollection('products');
+const product = products.find((p) => p.id === slug);
+
+if (!product) {
+  return Astro.redirect('/404');
+}
+
+const { Content } = await product.render();
+
+// Get all definitions scoped to this product
+const allDefinitions = await getCollection('definitions');
+const productDefs = allDefinitions.filter((d) => d.data.product === slug);
+
+// Get the terms that have product-specific definitions
+const termSlugs = [...new Set(productDefs.map((d) => d.data.term))];
+const allTerms = await getCollection('terms');
+const productTerms = allTerms.filter((t) => termSlugs.includes(t.id));
+
+const breadcrumbs = [
+  { label: 'Home', href: '/' },
+  { label: 'Products', href: '/products' },
+  { label: product.data.name },
+];
+---
+
+<ContentLayout
+  title={`${product.data.name} — CustDev Wiki`}
+  breadcrumbs={breadcrumbs}
+>
+  <div class="product-header">
+    <h1>{product.data.name}</h1>
+    <div class="meta">
+      <PhaseIndicator phase={product.data.custdev_phase} />
+      <StatusBadge status={product.data.status} />
+    </div>
+    <p class="description">{product.data.description}</p>
+  </div>
+
+  <article class="product-content">
+    <Content />
+  </article>
+
+  {productTerms.length > 0 && (
+    <section class="product-terms">
+      <h2>Product-Specific Terms ({productTerms.length})</h2>
+      <p class="term-intro">
+        These terms have definitions specific to {product.data.name}, overriding the global definitions.
+      </p>
+      <div class="term-grid">
+        {productTerms.map((term) => (
+          <TermCard
+            name={term.data.name}
+            slug={term.id}
+            phase={term.data.custdev_phase}
+            status={term.data.status}
+          />
+        ))}
+      </div>
+    </section>
+  )}
+
+  <Fragment slot="sidebar">
+    <div class="sidebar-section">
+      <h3>Product Details</h3>
+      <dl>
+        <dt>Status</dt>
+        <dd><StatusBadge status={product.data.status} /></dd>
+        <dt>Phase</dt>
+        <dd><PhaseIndicator phase={product.data.custdev_phase} size="small" /></dd>
+        <dt>Definitions</dt>
+        <dd>{productDefs.length} product-specific</dd>
+        {product.data.team_members.length > 0 && (
+          <>
+            <dt>Team</dt>
+            <dd>{product.data.team_members.join(', ')}</dd>
+          </>
+        )}
+      </dl>
+    </div>
+  </Fragment>
+</ContentLayout>
+
+<style>
+  .product-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .product-header h1 {
+    margin: 0 0 0.5rem;
+  }
+
+  .meta {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .description {
+    color: var(--color-text-muted);
+    margin: 0;
+  }
+
+  .product-terms {
+    margin-top: 2rem;
+  }
+
+  .term-intro {
+    color: var(--color-text-muted);
+    margin-bottom: 1rem;
+  }
+
+  .term-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+
+  .sidebar-section h3 {
+    margin-top: 0;
+  }
+
+  dl {
+    margin: 0;
+  }
+
+  dt {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin-top: 0.75rem;
+  }
+
+  dd {
+    margin: 0.25rem 0 0 0;
+  }
+</style>

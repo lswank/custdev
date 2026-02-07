@@ -1,0 +1,76 @@
+---
+import StatusBadge from './StatusBadge.astro';
+
+interface Props {
+  name: string;
+  slug: string;
+  status?: string;
+  jurisdiction?: string;
+  relationship?: string;
+  entity_type?: string;
+}
+
+const { name, slug, status, jurisdiction, relationship, entity_type } = Astro.props;
+---
+
+<a href={`/entities/${slug}`} class="entity-card">
+  <h3 class="entity-name">{name}</h3>
+  <div class="entity-meta">
+    {status && <StatusBadge status={status} />}
+    {relationship && <span class="entity-pill">{relationship.replace(/-/g, ' ')}</span>}
+    {jurisdiction && <span class="entity-pill">{jurisdiction}</span>}
+  </div>
+  {entity_type && (
+    <p class="entity-type">{entity_type.replace(/-/g, ' ')}</p>
+  )}
+</a>
+
+<style>
+  .entity-card {
+    display: block;
+    padding: 1.25rem;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    background: var(--color-bg);
+    text-decoration: none;
+    color: var(--color-text);
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+
+  .entity-card:hover {
+    text-decoration: none;
+    border-color: var(--color-link);
+    box-shadow: 0 2px 8px rgba(0, 0, 0, 0.08);
+  }
+
+  .entity-name {
+    margin: 0 0 0.5rem 0;
+    font-size: 1.1rem;
+    line-height: 1.3;
+  }
+
+  .entity-meta {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.5rem;
+    align-items: center;
+  }
+
+  .entity-pill {
+    font-size: 0.7rem;
+    padding: 0.2em 0.6em;
+    border-radius: 4px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+    text-transform: capitalize;
+    white-space: nowrap;
+  }
+
+  .entity-type {
+    margin: 0.75rem 0 0;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    text-transform: capitalize;
+  }
+</style>

@@ -1,0 +1,61 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import ProcessCard from '../../components/ProcessCard.astro';
+import CollectionView from '../../components/CollectionView.astro';
+import type { ColumnDef, FilterDef } from '../../lib/collection-view';
+import { getCollection } from 'astro:content';
+
+const processes = await getCollection('processes');
+const sorted = processes.sort((a, b) => a.data.title.localeCompare(b.data.title));
+
+const categoryOptions = Array.from(
+  new Set(sorted.map((process) => process.data.category).filter(Boolean))
+).sort() as string[];
+const statusOptions = Array.from(
+  new Set(sorted.map((process) => process.data.status).filter(Boolean))
+).sort() as string[];
+
+const columns: ColumnDef[] = [
+  { key: 'title', label: 'Title', sortable: true, primary: true, type: 'text' },
+  { key: 'category', label: 'Category', sortable: true, type: 'text' },
+  { key: 'status', label: 'Status', sortable: true, type: 'badge' },
+  { key: 'owner', label: 'Owner', sortable: true, type: 'text', priority: 'low' },
+];
+
+const filters: FilterDef[] = [
+  { key: 'category', label: 'Category', options: categoryOptions },
+  { key: 'status', label: 'Status', options: statusOptions },
+];
+---
+
+<BaseLayout title="Processes — CustDev Wiki">
+  <h1>Processes</h1>
+  <p class="subtitle">Documented workflows and operational playbooks.</p>
+
+  <CollectionView
+    items={sorted}
+    columns={columns}
+    filters={filters}
+    basePath="/processes"
+    emptyMessage="No processes yet."
+  >
+    {sorted.map((process) => (
+      <div data-cv-id={process.id}>
+        <ProcessCard
+          title={process.data.title}
+          slug={process.id}
+          category={process.data.category}
+          status={process.data.status}
+          owner={process.data.owner}
+        />
+      </div>
+    ))}
+  </CollectionView>
+</BaseLayout>
+
+<style>
+  .subtitle {
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+  }
+</style>

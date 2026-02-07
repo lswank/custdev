@@ -1,0 +1,223 @@
+---
+import ContentLayout from '../../layouts/ContentLayout.astro';
+import StatusBadge from '../../components/StatusBadge.astro';
+import { getCollection } from 'astro:content';
+
+const { slug } = Astro.params;
+
+const entities = await getCollection('entities');
+const entity = entities.find((e) => e.id === slug);
+
+if (!entity) {
+  return Astro.redirect('/404');
+}
+
+const { Content } = await entity.render();
+
+const people = await getCollection('people');
+const keyPeople = people.filter((person) => person.data.company === slug);
+
+const parent = entity.data.parent
+  ? entities.find((e) => e.id === entity.data.parent)
+  : undefined;
+
+const childEntities = entities.filter((e) => e.data.parent === slug);
+
+const breadcrumbs = [
+  { label: 'Home', href: '/' },
+  { label: 'Entities', href: '/entities' },
+  { label: entity.data.name },
+];
+---
+
+<ContentLayout title={`${entity.data.name} — CustDev Wiki`} breadcrumbs={breadcrumbs}>
+  <div class="entity-header">
+    <h1>{entity.data.name}</h1>
+    <div class="meta">
+      {entity.data.status && <StatusBadge status={entity.data.status} />}
+      {entity.data.relationship && (
+        <span class="meta-pill">{entity.data.relationship.replace(/-/g, ' ')}</span>
+      )}
+      {entity.data.jurisdiction && (
+        <span class="meta-pill">{entity.data.jurisdiction}</span>
+      )}
+    </div>
+    {entity.data.legal_name && (
+      <p class="entity-legal">Legal name: {entity.data.legal_name}</p>
+    )}
+    {entity.data.entity_type && (
+      <p class="entity-type">{entity.data.entity_type.replace(/-/g, ' ')}</p>
+    )}
+  </div>
+
+  <article class="entity-content" data-pagefind-body>
+    <Content />
+  </article>
+
+  {childEntities.length > 0 && (
+    <section class="child-entities">
+      <h2>Child Entities</h2>
+      <ul>
+        {childEntities.map((child) => (
+          <li>
+            <a href={`/entities/${child.id}`}>{child.data.name}</a>
+            {child.data.relationship && (
+              <span class="child-meta">{child.data.relationship.replace(/-/g, ' ')}</span>
+            )}
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  <Fragment slot="sidebar">
+    <div class="sidebar-section">
+      <h3>Details</h3>
+      <dl>
+        {parent && (
+          <>
+            <dt>Parent</dt>
+            <dd><a href={`/entities/${parent.id}`}>{parent.data.name}</a></dd>
+          </>
+        )}
+        {entity.data.founded && (
+          <>
+            <dt>Founded</dt>
+            <dd>{entity.data.founded.toLocaleDateString()}</dd>
+          </>
+        )}
+        {entity.data.dissolved && (
+          <>
+            <dt>Dissolved</dt>
+            <dd>{entity.data.dissolved.toLocaleDateString()}</dd>
+          </>
+        )}
+        {entity.data.website && (
+          <>
+            <dt>Website</dt>
+            <dd>
+              <a href={entity.data.website} target="_blank" rel="noopener noreferrer">
+                {entity.data.website}
+              </a>
+            </dd>
+          </>
+        )}
+      </dl>
+    </div>
+
+    {keyPeople.length > 0 && (
+      <div class="sidebar-section">
+        <h3>Key People</h3>
+        <ul class="key-people">
+          {keyPeople.map((person) => (
+            <li>
+              <a href={`/people/${person.id}`}>{person.data.name}</a>
+              <span class="role">{person.data.role}</span>
+            </li>
+          ))}
+        </ul>
+      </div>
+    )}
+  </Fragment>
+</ContentLayout>
+
+<style>
+  .entity-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .entity-header h1 {
+    margin: 0 0 0.5rem;
+  }
+
+  .meta {
+    display: flex;
+    gap: 0.5rem;
+    flex-wrap: wrap;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .meta-pill {
+    font-size: 0.75rem;
+    padding: 0.2em 0.6em;
+    border-radius: 4px;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    color: var(--color-text-muted);
+    text-transform: capitalize;
+  }
+
+  .entity-legal,
+  .entity-type {
+    margin: 0;
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+  }
+
+  .entity-type {
+    text-transform: capitalize;
+  }
+
+  .child-entities ul {
+    list-style: none;
+    padding: 0;
+    margin: 0.5rem 0 0;
+  }
+
+  .child-entities li {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 0.35rem 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .child-meta {
+    font-size: 0.75rem;
+    color: var(--color-text-muted);
+    text-transform: capitalize;
+  }
+
+  .sidebar-section h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+  }
+
+  .key-people {
+    list-style: none;
+    padding: 0;
+    margin: 0;
+  }
+
+  .key-people li {
+    display: flex;
+    flex-direction: column;
+    gap: 0.15rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .key-people .role {
+    font-size: 0.8rem;
+    color: var(--color-text-muted);
+  }
+
+  dl {
+    margin: 0;
+  }
+
+  dt {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin-top: 0.75rem;
+  }
+
+  dd {
+    margin: 0.25rem 0 0 0;
+  }
+</style>

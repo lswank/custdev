@@ -1,0 +1,46 @@
+---
+interface Props {
+  level: 'hypothesis' | 'tested' | 'proven' | 'canonical';
+}
+
+const { level } = Astro.props;
+
+const titleCase = (str: string) =>
+  str.replace(/\b\w/g, (c) => c.toUpperCase());
+---
+
+<span class:list={['confidence-badge', `level--${level}`]}>
+  {titleCase(level)}
+</span>
+
+<style>
+  .confidence-badge {
+    display: inline-block;
+    font-size: 0.65rem;
+    font-weight: 600;
+    padding: 0.15em 0.5em;
+    border-radius: 3px;
+    white-space: nowrap;
+    line-height: 1;
+  }
+
+  .level--hypothesis {
+    background: color-mix(in srgb, var(--color-hypothesis) 15%, transparent);
+    color: var(--color-hypothesis);
+  }
+
+  .level--tested {
+    background: color-mix(in srgb, var(--color-tested) 15%, transparent);
+    color: var(--color-tested);
+  }
+
+  .level--proven {
+    background: color-mix(in srgb, var(--color-proven) 15%, transparent);
+    color: var(--color-proven);
+  }
+
+  .level--canonical {
+    background: color-mix(in srgb, var(--color-canonical) 15%, transparent);
+    color: var(--color-canonical);
+  }
+</style>

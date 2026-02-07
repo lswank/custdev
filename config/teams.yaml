@@ -1,0 +1,25 @@
+roles:
+  - slug: admin
+    permissions: [propose, review, approve, publish, configure]
+  - slug: product-lead
+    permissions: [propose, review, approve, publish]
+    scope: "own-products"
+  - slug: term-owner
+    permissions: [propose, review, approve, publish]
+    scope: "own-terms"
+  - slug: editor
+    permissions: [propose, review]
+  - slug: contributor
+    permissions: [propose]
+
+people:
+  - name: "Admin User"
+    email: "admin@localhost"
+    role: admin
+  - name: "Editor User"
+    email: "editor@localhost"
+    role: editor
+    products: ["quickbite"]
+  - name: "Contributor User"
+    email: "contributor@localhost"
+    role: contributor

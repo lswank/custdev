@@ -1,0 +1,63 @@
+---
+interface Props {
+  phase: 'discovery' | 'validation' | 'creation' | 'building';
+  size?: 'small' | 'medium';
+}
+
+const { phase, size = 'small' } = Astro.props;
+
+const phaseLabels: Record<string, string> = {
+  discovery: 'Customer Discovery',
+  validation: 'Customer Validation',
+  creation: 'Customer Creation',
+  building: 'Company Building',
+};
+
+const label = phaseLabels[phase] ?? phase;
+---
+
+<span
+  class:list={['phase-indicator', `phase--${phase}`, `size--${size}`]}
+>
+  {label}
+</span>
+
+<style>
+  .phase-indicator {
+    display: inline-block;
+    font-weight: 600;
+    border-radius: 4px;
+    white-space: nowrap;
+    line-height: 1;
+  }
+
+  .size--small {
+    font-size: 0.7rem;
+    padding: 0.2em 0.6em;
+  }
+
+  .size--medium {
+    font-size: 0.8rem;
+    padding: 0.3em 0.75em;
+  }
+
+  .phase--discovery {
+    background: color-mix(in srgb, var(--color-discovery) 15%, transparent);
+    color: var(--color-discovery);
+  }
+
+  .phase--validation {
+    background: color-mix(in srgb, var(--color-validation) 15%, transparent);
+    color: var(--color-validation);
+  }
+
+  .phase--creation {
+    background: color-mix(in srgb, var(--color-creation) 15%, transparent);
+    color: var(--color-creation);
+  }
+
+  .phase--building {
+    background: color-mix(in srgb, var(--color-building) 15%, transparent);
+    color: var(--color-building);
+  }
+</style>

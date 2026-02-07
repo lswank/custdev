@@ -1,0 +1,162 @@
+backend:
+  name: proxy
+  proxy_url: /api/cms
+  branch: main
+
+media_folder: "public/media"
+public_folder: "/media"
+
+collections:
+  - name: terms
+    label: "Terms"
+    folder: "src/content/terms"
+    create: true
+    slug: "{{slug}}"
+    extension: md
+    format: yaml-frontmatter
+    fields:
+      - { label: "Name", name: "name", widget: "string", hint: "The canonical name for this term" }
+      - label: "Aliases"
+        name: "aliases"
+        widget: "list"
+        default: []
+        hint: "Other names people use for this term"
+      - label: "CustDev Phase"
+        name: "custdev_phase"
+        widget: "select"
+        options:
+          - { label: "Customer Discovery", value: "discovery" }
+          - { label: "Customer Validation", value: "validation" }
+          - { label: "Customer Creation", value: "creation" }
+          - { label: "Company Building", value: "building" }
+      - { label: "Owner", name: "owner", widget: "string" }
+      - { label: "Created", name: "created", widget: "datetime" }
+      - label: "Status"
+        name: "status"
+        widget: "select"
+        options:
+          - { label: "Proposed", value: "proposed" }
+          - { label: "Draft", value: "draft" }
+          - { label: "In Review", value: "in-review" }
+          - { label: "Published", value: "published" }
+          - { label: "Deprecated", value: "deprecated" }
+          - { label: "Archived", value: "archived" }
+        default: "draft"
+      - { label: "Body", name: "body", widget: "markdown" }
+
+  - name: definitions
+    label: "Definitions"
+    folder: "src/content/definitions"
+    create: true
+    nested:
+      depth: 2
+    slug: "{{fields.term}}/{{slug}}"
+    extension: md
+    format: yaml-frontmatter
+    fields:
+      - { label: "Term", name: "term", widget: "relation", collection: "terms", search_fields: ["name"], value_field: "{{slug}}", display_fields: ["name"] }
+      - { label: "Product", name: "product", widget: "string", default: "global", hint: "Use 'global' for the default definition, or a product slug for overrides" }
+      - label: "CustDev Phase"
+        name: "custdev_phase"
+        widget: "select"
+        options:
+          - { label: "Customer Discovery", value: "discovery" }
+          - { label: "Customer Validation", value: "validation" }
+          - { label: "Customer Creation", value: "creation" }
+          - { label: "Company Building", value: "building" }
+      - label: "Confidence"
+        name: "confidence"
+        widget: "select"
+        options:
+          - { label: "Hypothesis", value: "hypothesis" }
+          - { label: "Tested", value: "tested" }
+          - { label: "Proven", value: "proven" }
+          - { label: "Canonical", value: "canonical" }
+      - { label: "Version", name: "version", widget: "string", default: "1.0.0" }
+      - { label: "Owner", name: "owner", widget: "string" }
+      - { label: "Method", name: "method", widget: "relation", collection: "methods", search_fields: ["name"], value_field: "{{slug}}", display_fields: ["name"] }
+      - label: "Status"
+        name: "status"
+        widget: "select"
+        options:
+          - { label: "Draft", value: "draft" }
+          - { label: "In Review", value: "in-review" }
+          - { label: "Published", value: "published" }
+          - { label: "Deprecated", value: "deprecated" }
+          - { label: "Archived", value: "archived" }
+        default: "draft"
+      - { label: "Override Reason", name: "override_reason", widget: "string", required: false, hint: "Required if product is not 'global'" }
+      - { label: "Last Validated", name: "last_validated", widget: "datetime", required: false }
+      - { label: "Body", name: "body", widget: "markdown" }
+
+  - name: methods
+    label: "Definition Methods"
+    folder: "src/content/methods"
+    create: true
+    slug: "{{slug}}"
+    extension: md
+    format: yaml-frontmatter
+    fields:
+      - { label: "Name", name: "name", widget: "string" }
+      - label: "Method Type"
+        name: "method_type"
+        widget: "select"
+        options:
+          - { label: "Customer Interview", value: "customer-interview" }
+          - { label: "A/B Test", value: "ab-test" }
+          - { label: "Analytics", value: "analytics" }
+          - { label: "Industry Standard", value: "industry-standard" }
+          - { label: "Expert Opinion", value: "expert-opinion" }
+          - { label: "Leadership Decision", value: "leadership-decision" }
+      - { label: "Evidence Links", name: "evidence_links", widget: "list", default: [] }
+      - label: "Confidence Level"
+        name: "confidence_level"
+        widget: "select"
+        options:
+          - { label: "Low", value: "low" }
+          - { label: "Medium", value: "medium" }
+          - { label: "High", value: "high" }
+      - { label: "Date Validated", name: "date_validated", widget: "datetime", required: false }
+      - { label: "Validator", name: "validator", widget: "string", required: false }
+      - { label: "Body", name: "body", widget: "markdown" }
+
+  - name: products
+    label: "Products"
+    folder: "src/content/products"
+    create: true
+    slug: "{{slug}}"
+    extension: md
+    format: yaml-frontmatter
+    fields:
+      - { label: "Name", name: "name", widget: "string" }
+      - { label: "Description", name: "description", widget: "text" }
+      - { label: "Team Members", name: "team_members", widget: "list", default: [] }
+      - { label: "Parent Product", name: "parent_product", widget: "string", required: false }
+      - label: "Status"
+        name: "status"
+        widget: "select"
+        options:
+          - { label: "Active", value: "active" }
+          - { label: "Planned", value: "planned" }
+          - { label: "Sunset", value: "sunset" }
+      - label: "CustDev Phase"
+        name: "custdev_phase"
+        widget: "select"
+        options:
+          - { label: "Customer Discovery", value: "discovery" }
+          - { label: "Customer Validation", value: "validation" }
+          - { label: "Customer Creation", value: "creation" }
+          - { label: "Company Building", value: "building" }
+      - { label: "Body", name: "body", widget: "markdown" }
+
+  - name: frameworks
+    label: "Framework Pages"
+    folder: "src/content/frameworks"
+    create: true
+    slug: "{{slug}}"
+    extension: md
+    format: yaml-frontmatter
+    fields:
+      - { label: "Title", name: "title", widget: "string" }
+      - { label: "Order", name: "order", widget: "number", required: false }
+      - { label: "Body", name: "body", widget: "markdown" }

@@ -1,0 +1,282 @@
+---
+import ContentLayout from '../../layouts/ContentLayout.astro';
+import PhaseIndicator from '../../components/PhaseIndicator.astro';
+import StatusBadge from '../../components/StatusBadge.astro';
+import ConfidenceBadge from '../../components/ConfidenceBadge.astro';
+import TagList from '../../components/TagList.astro';
+import { getCollection } from 'astro:content';
+
+const { slug } = Astro.params;
+
+const terms = await getCollection('terms');
+const term = terms.find((t) => t.id === slug);
+
+if (!term) {
+  return Astro.redirect('/404');
+}
+
+const { Content } = await term.render();
+
+// Get definitions for this term
+const allDefinitions = await getCollection('definitions');
+const definitions = allDefinitions.filter((d) => d.data.term === slug);
+const globalDef = definitions.find((d) => d.data.product === 'global');
+const productDefs = definitions.filter((d) => d.data.product !== 'global');
+
+// Get version history
+const allVersions = await getCollection('versions');
+const versions = allVersions
+  .filter((v) => v.data.term === slug)
+  .sort((a, b) => b.data.date.getTime() - a.data.date.getTime());
+
+// Get related terms
+const relatedTerms = terms.filter(
+  (t) => t.id !== slug && term.data.aliases.some((a: string) =>
+    t.data.name.toLowerCase().includes(a.toLowerCase())
+  )
+);
+
+const breadcrumbs = [
+  { label: 'Home', href: '/' },
+  { label: 'Terms', href: '/terms' },
+  { label: term.data.name },
+];
+---
+
+<ContentLayout
+  title={`${term.data.name} — CustDev Wiki`}
+  breadcrumbs={breadcrumbs}
+>
+  <div class="term-header">
+    <h1>{term.data.name}</h1>
+    <div class="meta">
+      <PhaseIndicator phase={term.data.custdev_phase} />
+      <StatusBadge status={term.data.status} />
+    </div>
+    {term.data.aliases.length > 0 && (
+      <p class="aliases">Also known as: {term.data.aliases.join(', ')}</p>
+    )}
+  </div>
+
+  <article class="term-content" data-pagefind-body>
+    <Content />
+  </article>
+
+  {globalDef && (
+    <section class="definition-section">
+      <h2>Global Definition</h2>
+      <div class="definition-card">
+        <div class="def-meta">
+          <ConfidenceBadge level={globalDef.data.confidence} />
+          <span class="version">v{globalDef.data.version}</span>
+          <span class="owner">Owner: {globalDef.data.owner}</span>
+        </div>
+        {await globalDef.render().then(({ Content: DefContent }) => <DefContent />)}
+      </div>
+    </section>
+  )}
+
+  {productDefs.length > 0 && (
+    <section class="definition-section">
+      <h2>Product-Specific Definitions</h2>
+      {productDefs.map(async (def) => {
+        const { Content: DefContent } = await def.render();
+        return (
+          <div class="definition-card override">
+            <div class="def-header">
+              <h3>{def.data.product}</h3>
+              <span class="override-badge">Overrides global</span>
+            </div>
+            <div class="def-meta">
+              <ConfidenceBadge level={def.data.confidence} />
+              <span class="version">v{def.data.version}</span>
+            </div>
+            {def.data.override_reason && (
+              <p class="override-reason">Override reason: {def.data.override_reason}</p>
+            )}
+            <DefContent />
+          </div>
+        );
+      })}
+    </section>
+  )}
+
+  {versions.length > 0 && (
+    <section class="version-history">
+      <h2>Version History</h2>
+      <div class="timeline">
+        {versions.map(async (v) => {
+          const { Content: VersionContent } = await v.render();
+          return (
+            <div class="timeline-entry">
+              <div class="timeline-header">
+                <strong>v{v.data.version}</strong>
+                <time>{v.data.date.toLocaleDateString()}</time>
+                <span class="author">{v.data.author}</span>
+              </div>
+              <p class="change-summary">{v.data.change_summary}</p>
+              <p class="trigger"><em>Trigger: {v.data.custdev_trigger}</em></p>
+              <VersionContent />
+            </div>
+          );
+        })}
+      </div>
+    </section>
+  )}
+
+  <Fragment slot="sidebar">
+    <div class="sidebar-section">
+      <h3>Details</h3>
+      <dl>
+        <dt>Owner</dt>
+        <dd>{term.data.owner}</dd>
+        <dt>Created</dt>
+        <dd>{term.data.created.toLocaleDateString()}</dd>
+        <dt>Phase</dt>
+        <dd><PhaseIndicator phase={term.data.custdev_phase} size="small" /></dd>
+        <dt>Definitions</dt>
+        <dd>{definitions.length} ({productDefs.length} product-specific)</dd>
+      </dl>
+    </div>
+  </Fragment>
+</ContentLayout>
+
+<style>
+  .term-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .term-header h1 {
+    margin: 0 0 0.5rem;
+  }
+
+  .meta {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .aliases {
+    color: var(--color-text-muted);
+    font-style: italic;
+    margin: 0;
+  }
+
+  .definition-section {
+    margin: 2rem 0;
+  }
+
+  .definition-card {
+    border: 1px solid var(--color-border);
+    border-radius: 8px;
+    padding: 1.5rem;
+    margin-bottom: 1rem;
+  }
+
+  .definition-card.override {
+    border-left: 4px solid var(--color-validation);
+  }
+
+  .def-header {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .def-header h3 {
+    margin: 0;
+    text-transform: capitalize;
+  }
+
+  .override-badge {
+    font-size: 0.75rem;
+    background: var(--color-validation);
+    color: white;
+    padding: 0.15em 0.5em;
+    border-radius: 4px;
+  }
+
+  .def-meta {
+    display: flex;
+    gap: 0.75rem;
+    align-items: center;
+    margin-bottom: 1rem;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  .override-reason {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    font-style: italic;
+    margin-bottom: 1rem;
+  }
+
+  .version-history {
+    margin-top: 2rem;
+  }
+
+  .timeline-entry {
+    border-left: 2px solid var(--color-border);
+    padding-left: 1.5rem;
+    margin-bottom: 1.5rem;
+    position: relative;
+  }
+
+  .timeline-entry::before {
+    content: '';
+    width: 10px;
+    height: 10px;
+    background: var(--color-link);
+    border-radius: 50%;
+    position: absolute;
+    left: -6px;
+    top: 0.4rem;
+  }
+
+  .timeline-header {
+    display: flex;
+    gap: 1rem;
+    align-items: baseline;
+    font-size: 0.9rem;
+  }
+
+  .timeline-header time,
+  .author {
+    color: var(--color-text-muted);
+  }
+
+  .change-summary {
+    margin: 0.5rem 0 0.25rem;
+  }
+
+  .trigger {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  .sidebar-section h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+  }
+
+  dl {
+    margin: 0;
+  }
+
+  dt {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin-top: 0.75rem;
+  }
+
+  dd {
+    margin: 0.25rem 0 0 0;
+  }
+</style>

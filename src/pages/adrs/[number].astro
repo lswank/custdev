@@ -1,0 +1,155 @@
+---
+import ContentLayout from '../../layouts/ContentLayout.astro';
+import StatusBadge from '../../components/StatusBadge.astro';
+import { getCollection } from 'astro:content';
+
+const { number } = Astro.params;
+
+const adrs = await getCollection('adrs');
+const adr = adrs.find((a) => a.data.number === Number(number));
+
+if (!adr) {
+  return Astro.redirect('/404');
+}
+
+const { Content } = await adr.render();
+
+const breadcrumbs = [
+  { label: 'Home', href: '/' },
+  { label: 'ADRs', href: '/adrs' },
+  { label: `ADR-${adr.data.number}` },
+];
+---
+
+<ContentLayout
+  title={`ADR-${adr.data.number}: ${adr.data.title} — CustDev Wiki`}
+  breadcrumbs={breadcrumbs}
+>
+  <div class="adr-header">
+    <h1>ADR-{adr.data.number}: {adr.data.title}</h1>
+    <div class="meta">
+      <StatusBadge status={adr.data.status} />
+      <time>{adr.data.date.toLocaleDateString()}</time>
+    </div>
+  </div>
+
+  {adr.data.deciders.length > 0 && (
+    <section class="deciders-section">
+      <h2>Deciders</h2>
+      <ul class="tag-list">
+        {adr.data.deciders.map((decider) => (
+          <li class="tag-pill">{decider}</li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {adr.data.tags.length > 0 && (
+    <section class="tags-section">
+      <h2>Tags</h2>
+      <ul class="tag-list">
+        {adr.data.tags.map((tag) => (
+          <li class="tag-pill">{tag}</li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  <article class="adr-content" data-pagefind-body>
+    <Content />
+  </article>
+
+  <Fragment slot="sidebar">
+    <div class="sidebar-section">
+      <h3>Details</h3>
+      <dl>
+        <dt>Number</dt>
+        <dd>ADR-{adr.data.number}</dd>
+        <dt>Status</dt>
+        <dd><StatusBadge status={adr.data.status} /></dd>
+        <dt>Date</dt>
+        <dd>{adr.data.date.toLocaleDateString()}</dd>
+        {adr.data.deciders.length > 0 && (
+          <>
+            <dt>Deciders</dt>
+            <dd>{adr.data.deciders.join(', ')}</dd>
+          </>
+        )}
+        {adr.data.tags.length > 0 && (
+          <>
+            <dt>Tags</dt>
+            <dd>{adr.data.tags.join(', ')}</dd>
+          </>
+        )}
+      </dl>
+    </div>
+  </Fragment>
+</ContentLayout>
+
+<style>
+  .adr-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .adr-header h1 {
+    margin: 0 0 0.5rem;
+  }
+
+  .meta {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .meta time {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+  }
+
+  .deciders-section,
+  .tags-section {
+    margin: 1.5rem 0;
+  }
+
+  .tag-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .tag-pill {
+    font-size: 0.8rem;
+    padding: 0.3em 0.7em;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    color: var(--color-text-muted);
+  }
+
+  .sidebar-section h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+  }
+
+  dl {
+    margin: 0;
+  }
+
+  dt {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin-top: 0.75rem;
+  }
+
+  dd {
+    margin: 0.25rem 0 0 0;
+  }
+</style>

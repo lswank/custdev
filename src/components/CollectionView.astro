@@ -1,0 +1,423 @@
+---
+import PhaseIndicator from './PhaseIndicator.astro';
+import StatusBadge from './StatusBadge.astro';
+import TagList from './TagList.astro';
+import type { ColumnDef, FilterDef } from '../lib/collection-view';
+
+interface Props {
+  items: Array<any>;
+  columns: ColumnDef[];
+  filters?: FilterDef[];
+  basePath: string;
+  cardMin?: number;
+  emptyMessage?: string;
+}
+
+const {
+  items,
+  columns,
+  filters = [],
+  basePath,
+  cardMin = 300,
+  emptyMessage,
+} = Astro.props;
+
+const filterGroups = filters.filter((filter) => filter.options.length > 0);
+
+const getValue = (item: any, key: string) => {
+  if (item?.data && key in item.data) return item.data[key];
+  return item?.[key];
+};
+
+const normalizeValue = (value: unknown) => {
+  if (value instanceof Date) return value.toISOString();
+  return value ?? null;
+};
+
+const serializedItems = items.map((item) => {
+  const values: Record<string, unknown> = {};
+  columns.forEach((column) => {
+    values[column.key] = normalizeValue(getValue(item, column.key));
+  });
+  filterGroups.forEach((filter) => {
+    if (!(filter.key in values)) {
+      values[filter.key] = normalizeValue(getValue(item, filter.key));
+    }
+  });
+  return { id: item.id, values };
+});
+
+const serialized = {
+  items: serializedItems,
+  columns,
+  filters: filterGroups,
+};
+---
+
+<div class="collection-view" style={`--cv-card-min: ${cardMin}px;`}>
+  <div class="cv-toolbar">
+    <div class="cv-view-toggle" role="group" aria-label="View options">
+      <button class="cv-view-btn" data-view="cards" type="button" aria-pressed="true">
+        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="3" y="3" width="7" height="7" rx="1.2" fill="currentColor" />
+          <rect x="14" y="3" width="7" height="7" rx="1.2" fill="currentColor" />
+          <rect x="3" y="14" width="7" height="7" rx="1.2" fill="currentColor" />
+          <rect x="14" y="14" width="7" height="7" rx="1.2" fill="currentColor" />
+        </svg>
+        Cards
+      </button>
+      <button class="cv-view-btn" data-view="list" type="button" aria-pressed="false">
+        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+          <rect x="3" y="4" width="18" height="3" rx="1.5" fill="currentColor" />
+          <rect x="3" y="10.5" width="18" height="3" rx="1.5" fill="currentColor" />
+          <rect x="3" y="17" width="18" height="3" rx="1.5" fill="currentColor" />
+        </svg>
+        List
+      </button>
+    </div>
+    <div class="cv-count">
+      <span data-cv-count>{items.length}</span> items
+    </div>
+  </div>
+
+  {filterGroups.length > 0 && (
+    <div class="cv-filters">
+      {filterGroups.map((filter) => (
+        <div class="cv-filter-group" data-filter-key={filter.key}>
+          <span class="cv-filter-label">{filter.label}</span>
+          <div class="cv-filter-pills">
+            <button
+              class="cv-filter-pill"
+              type="button"
+              aria-pressed="true"
+              data-filter-value="__all__"
+            >
+              All
+            </button>
+            {filter.options.map((option) => (
+              <button
+                class="cv-filter-pill"
+                type="button"
+                aria-pressed="false"
+                data-filter-value={option}
+              >
+                {option}
+              </button>
+            ))}
+          </div>
+        </div>
+      ))}
+    </div>
+  )}
+
+  <div class="cv-card-grid">
+    <slot />
+  </div>
+
+  <div class="cv-list-view" hidden>
+    <table class="cv-table">
+      <thead>
+        <tr>
+          {columns.map((column) => (
+            <th
+              class:list={[
+                'cv-col',
+                column.sortable ? 'cv-sortable' : '',
+                column.priority === 'low' ? 'cv-col--low' : '',
+              ]}
+              data-key={column.key}
+              aria-sort={column.sortable ? 'none' : undefined}
+            >
+              {column.sortable ? (
+                <button class="cv-sort-btn" type="button">
+                  {column.label}
+                </button>
+              ) : (
+                column.label
+              )}
+            </th>
+          ))}
+        </tr>
+      </thead>
+      <tbody>
+        {items.map((item) => (
+          <tr data-cv-id={item.id}>
+            {columns.map((column) => {
+              const raw = getValue(item, column.key);
+              const isEmpty =
+                raw === undefined ||
+                raw === null ||
+                raw === '' ||
+                (Array.isArray(raw) && raw.length === 0);
+              let content: any = isEmpty ? '—' : raw;
+
+              if (column.type === 'phase') {
+                content = isEmpty ? '—' : <PhaseIndicator phase={String(raw)} size="small" />;
+              } else if (column.type === 'badge') {
+                content = isEmpty ? '—' : <StatusBadge status={String(raw)} />;
+              } else if (column.type === 'date') {
+                if (!isEmpty) {
+                  const dateValue = raw instanceof Date ? raw : new Date(String(raw));
+                  content = Number.isNaN(dateValue.getTime()) ? '—' : dateValue.toLocaleDateString();
+                }
+              } else if (column.type === 'tag-list') {
+                content = isEmpty ? '—' : <TagList tags={raw as string[]} />;
+              } else if (column.type === 'number') {
+                content = isEmpty ? '—' : raw;
+              } else if (column.type === 'text') {
+                content = isEmpty ? '—' : String(raw);
+              }
+
+              if (column.primary && !isEmpty) {
+                content = <a href={`${basePath}/${item.id}`}>{content}</a>;
+              }
+
+              return (
+                <td
+                  class:list={[
+                    'cv-col',
+                    column.priority === 'low' ? 'cv-col--low' : '',
+                  ]}
+                >
+                  {content}
+                </td>
+              );
+            })}
+          </tr>
+        ))}
+      </tbody>
+    </table>
+  </div>
+
+  {emptyMessage && (
+    <p class="cv-empty" data-cv-empty hidden={items.length > 0}>
+      {emptyMessage}
+    </p>
+  )}
+
+  <script type="application/json" set:html={JSON.stringify(serialized)} />
+
+  <script is:inline>
+    (function() {
+    const root = document.currentScript?.closest('.collection-view');
+    if (!root) return;
+
+    const dataEl = root.querySelector('script[type="application/json"]');
+    if (!dataEl) return;
+
+    const data = JSON.parse(dataEl.textContent || '{}');
+    const items = data.items || [];
+    const columns = data.columns || [];
+    const filters = data.filters || [];
+
+    const cardGrid = root.querySelector('.cv-card-grid');
+    const listView = root.querySelector('.cv-list-view');
+    const tbody = root.querySelector('tbody');
+    const countEl = root.querySelector('[data-cv-count]');
+    const emptyEl = root.querySelector('[data-cv-empty]');
+
+    const cardMap = new Map();
+    root.querySelectorAll('[data-cv-id]').forEach((el) => {
+      const id = el.getAttribute('data-cv-id');
+      if (id && el.closest('.cv-card-grid')) {
+        cardMap.set(id, el);
+      }
+    });
+
+    const rowMap = new Map();
+    if (tbody) {
+      tbody.querySelectorAll('[data-cv-id]').forEach((el) => {
+        const id = el.getAttribute('data-cv-id');
+        if (id) rowMap.set(id, el);
+      });
+    }
+
+    const media = window.matchMedia('(max-width: 768px)');
+    const viewButtons = root.querySelectorAll('.cv-view-btn');
+    let preferredView = localStorage.getItem('cv-view') || 'cards';
+
+    const applyView = (nextView) => {
+      const actualView = media.matches ? 'cards' : nextView;
+      viewButtons.forEach((btn) => {
+        btn.setAttribute('aria-pressed', btn.dataset.view === actualView ? 'true' : 'false');
+      });
+      if (cardGrid) cardGrid.hidden = actualView !== 'cards';
+      if (listView) listView.hidden = actualView !== 'list';
+    };
+
+    applyView(preferredView);
+    media.addEventListener('change', () => applyView(preferredView));
+
+    viewButtons.forEach((btn) => {
+      btn.addEventListener('click', () => {
+        const view = btn.dataset.view;
+        if (!view) return;
+        localStorage.setItem('cv-view', view);
+        preferredView = view;
+        applyView(preferredView);
+      });
+    });
+
+    const normalize = (value) => String(value).toLowerCase();
+
+    const activeFilters = new Map();
+    const filterGroups = root.querySelectorAll('[data-filter-key]');
+
+    const paramKeyForFilter = (key) => (key === 'custdev_phase' ? 'phase' : key);
+
+    const syncFilterPills = (groupEl, values) => {
+      groupEl.querySelectorAll('.cv-filter-pill').forEach((pill) => {
+        const value = pill.getAttribute('data-filter-value');
+        const isAll = value === '__all__';
+        const selected = isAll ? values.size === 0 : values.has(normalize(value));
+        pill.setAttribute('aria-pressed', selected ? 'true' : 'false');
+      });
+    };
+
+    const applyFilters = () => {
+      let visibleCount = 0;
+      items.forEach((item) => {
+        let matches = true;
+        activeFilters.forEach((values, key) => {
+          if (!matches) return;
+          if (values.size === 0) return;
+          const raw = item.values?.[key];
+          if (raw === null || raw === undefined) {
+            matches = false;
+            return;
+          }
+          if (Array.isArray(raw)) {
+            const normalized = raw.map((v) => normalize(v));
+            const hasMatch = normalized.some((val) => values.has(val));
+            if (!hasMatch) matches = false;
+            return;
+          }
+          const normalized = normalize(raw);
+          if (!values.has(normalized)) matches = false;
+        });
+
+        const card = cardMap.get(item.id);
+        const row = rowMap.get(item.id);
+        if (card) card.hidden = !matches;
+        if (row) row.hidden = !matches;
+        if (matches) visibleCount += 1;
+      });
+      if (countEl) countEl.textContent = String(visibleCount);
+      if (emptyEl) emptyEl.hidden = visibleCount !== 0;
+    };
+
+    const updateUrl = () => {
+      const url = new URL(window.location.href);
+      filters.forEach((filter) => {
+        const key = filter.key;
+        const paramKey = paramKeyForFilter(key);
+        const values = activeFilters.get(key);
+        if (!values || values.size === 0) {
+          url.searchParams.delete(paramKey);
+          return;
+        }
+        url.searchParams.set(paramKey, Array.from(values).join(','));
+      });
+      history.replaceState(null, '', url.toString());
+    };
+
+    filterGroups.forEach((groupEl) => {
+      const key = groupEl.getAttribute('data-filter-key');
+      if (!key) return;
+      const params = new URLSearchParams(window.location.search);
+      const paramKey = paramKeyForFilter(key);
+      const initialRaw = params.get(paramKey) || (key === 'custdev_phase' ? params.get('phase') : null);
+      const initialValues = new Set();
+      if (initialRaw) {
+        initialRaw.split(',').forEach((val) => initialValues.add(normalize(val)));
+      }
+      activeFilters.set(key, initialValues);
+      syncFilterPills(groupEl, initialValues);
+
+      groupEl.querySelectorAll('.cv-filter-pill').forEach((pill) => {
+        pill.addEventListener('click', () => {
+          const value = pill.getAttribute('data-filter-value');
+          if (!value) return;
+          const values = activeFilters.get(key) || new Set();
+          if (value === '__all__') {
+            values.clear();
+          } else {
+            const normalized = normalize(value);
+            if (values.has(normalized)) {
+              values.delete(normalized);
+            } else {
+              values.add(normalized);
+            }
+          }
+          activeFilters.set(key, values);
+          syncFilterPills(groupEl, values);
+          applyFilters();
+          updateUrl();
+        });
+      });
+    });
+
+    applyFilters();
+
+    const toSortValue = (value, type) => {
+      if (value === null || value === undefined) return '';
+      if (type === 'number') {
+        const num = Number(value);
+        return Number.isNaN(num) ? 0 : num;
+      }
+      if (type === 'date') {
+        const time = Date.parse(value);
+        return Number.isNaN(time) ? 0 : time;
+      }
+      return String(value).toLowerCase();
+    };
+
+    const sortItems = (key, direction, type) => {
+      items.sort((a, b) => {
+        const aVal = toSortValue(a.values?.[key], type);
+        const bVal = toSortValue(b.values?.[key], type);
+        if (aVal < bVal) return direction === 'asc' ? -1 : 1;
+        if (aVal > bVal) return direction === 'asc' ? 1 : -1;
+        return 0;
+      });
+
+      if (cardGrid) {
+        items.forEach((item) => {
+          const card = cardMap.get(item.id);
+          if (card) cardGrid.appendChild(card);
+        });
+      }
+      if (tbody) {
+        items.forEach((item) => {
+          const row = rowMap.get(item.id);
+          if (row) tbody.appendChild(row);
+        });
+      }
+    };
+
+    const headers = root.querySelectorAll('th.cv-sortable');
+    headers.forEach((th) => {
+      const button = th.querySelector('button');
+      const key = th.getAttribute('data-key');
+      if (!button || !key) return;
+      button.addEventListener('click', () => {
+        const current = th.classList.contains('cv-sort-asc')
+          ? 'asc'
+          : th.classList.contains('cv-sort-desc')
+            ? 'desc'
+            : null;
+        const next = current === 'asc' ? 'desc' : 'asc';
+        headers.forEach((h) => {
+          h.classList.remove('cv-sort-asc', 'cv-sort-desc');
+          h.setAttribute('aria-sort', 'none');
+        });
+        th.classList.add(next === 'asc' ? 'cv-sort-asc' : 'cv-sort-desc');
+        th.setAttribute('aria-sort', next === 'asc' ? 'ascending' : 'descending');
+        const column = columns.find((col) => col.key === key);
+        const type = column?.type || 'text';
+        sortItems(key, next, type);
+      });
+    });
+    })();
+  </script>
+</div>

@@ -1,0 +1,37 @@
+services:
+  wiki:
+    build:
+      dockerfile: Dockerfile.dev
+    environment:
+      - NODE_ENV=development
+      - JWT_SECRET=${JWT_SECRET:-dev-secret-change-in-production}
+    volumes:
+      - ./src:/app/src
+      - ./config:/app/config
+      - ./public:/app/public
+      - ./cms:/app/cms
+      - ./astro.config.mjs:/app/astro.config.mjs
+      - wiki_node_modules:/app/node_modules
+      - wiki_git:/app/.git
+    command: npm run dev -- --host 0.0.0.0
+
+  playwright:
+    build:
+      dockerfile: Dockerfile.dev
+    profiles: ["test"]
+    environment:
+      - WIKI_URL=http://wiki:4321
+      - CI=true
+    volumes:
+      - ./tests:/app/tests
+      - ./test-results:/app/test-results
+      - ./playwright.config.ts:/app/playwright.config.ts
+    depends_on:
+      wiki:
+        condition: service_healthy
+    command: npx playwright test
+    restart: "no"
+
+volumes:
+  wiki_node_modules:
+  wiki_git:

@@ -1,0 +1,57 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import AdrCard from '../../components/AdrCard.astro';
+import CollectionView from '../../components/CollectionView.astro';
+import type { ColumnDef, FilterDef } from '../../lib/collection-view';
+import { getCollection } from 'astro:content';
+
+const adrs = await getCollection('adrs');
+const sorted = adrs.sort((a, b) => b.data.number - a.data.number);
+const viewItems = sorted.map((adr) => ({ ...adr, id: String(adr.data.number) }));
+
+const statusOptions = Array.from(
+  new Set(sorted.map((adr) => adr.data.status).filter(Boolean))
+).sort() as string[];
+
+const columns: ColumnDef[] = [
+  { key: 'number', label: 'Number', sortable: true, type: 'number' },
+  { key: 'title', label: 'Title', sortable: true, primary: true, type: 'text' },
+  { key: 'status', label: 'Status', sortable: true, type: 'badge' },
+  { key: 'date', label: 'Date', sortable: true, type: 'date', priority: 'low' },
+];
+
+const filters: FilterDef[] = [
+  { key: 'status', label: 'Status', options: statusOptions },
+];
+---
+
+<BaseLayout title="ADRs — CustDev Wiki">
+  <h1>Architecture Decision Records</h1>
+  <p class="subtitle">Key decisions that shape the system and why we made them.</p>
+
+  <CollectionView
+    items={viewItems}
+    columns={columns}
+    filters={filters}
+    basePath="/adrs"
+    emptyMessage="No ADRs yet."
+  >
+    {viewItems.map((adr) => (
+      <div data-cv-id={adr.id}>
+        <AdrCard
+          title={adr.data.title}
+          number={adr.data.number}
+          status={adr.data.status}
+          date={adr.data.date}
+        />
+      </div>
+    ))}
+  </CollectionView>
+</BaseLayout>
+
+<style>
+  .subtitle {
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+  }
+</style>

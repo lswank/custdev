@@ -1,0 +1,10 @@
+products:
+  - slug: "quickbite"
+    name: "QuickBite"
+    description: "A fictional food delivery app used as the wiki's running example"
+    status: active
+    team:
+      lead: "admin@localhost"
+      members:
+        - "editor@localhost"
+    custdev_phase: validation

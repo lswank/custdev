@@ -1,0 +1,123 @@
+---
+import ContentLayout from '../../layouts/ContentLayout.astro';
+import PhaseIndicator from '../../components/PhaseIndicator.astro';
+import TermCard from '../../components/TermCard.astro';
+import { getCollection } from 'astro:content';
+import { getSiteConfig } from '../../lib/config.js';
+
+const { phase } = Astro.params;
+
+const config = getSiteConfig();
+const phaseConfig = config.custdev.phases.find((p) => p.slug === phase);
+
+if (!phaseConfig) {
+  return Astro.redirect('/404');
+}
+
+const frameworks = await getCollection('frameworks');
+const frameworkPage = frameworks.find((f) => f.id === phase);
+
+if (!frameworkPage) {
+  return Astro.redirect('/404');
+}
+
+const { Content } = await frameworkPage.render();
+
+// Get terms in this phase
+const terms = await getCollection('terms');
+const phaseTerms = terms.filter((t) => t.data.custdev_phase === phase);
+
+// Get methods used in this phase
+const allDefinitions = await getCollection('definitions');
+const phaseDefinitions = allDefinitions.filter((d) => d.data.custdev_phase === phase);
+
+const breadcrumbs = [
+  { label: 'Home', href: '/' },
+  { label: 'Framework', href: '/framework' },
+  { label: phaseConfig.label },
+];
+---
+
+<ContentLayout
+  title={`${phaseConfig.label} — CustDev Wiki`}
+  breadcrumbs={breadcrumbs}
+>
+  <div class="phase-header" style={`--phase-color: ${phaseConfig.color}`}>
+    <PhaseIndicator phase={phase as any} />
+    <h1>{phaseConfig.label}</h1>
+  </div>
+
+  <article class="phase-content">
+    <Content />
+  </article>
+
+  {phaseTerms.length > 0 && (
+    <section class="phase-terms">
+      <h2>Terms in This Phase ({phaseTerms.length})</h2>
+      <div class="term-grid">
+        {phaseTerms.map((term) => (
+          <TermCard
+            name={term.data.name}
+            slug={term.id}
+            phase={term.data.custdev_phase}
+            status={term.data.status}
+            aliases={term.data.aliases}
+          />
+        ))}
+      </div>
+    </section>
+  )}
+
+  <Fragment slot="sidebar">
+    <div class="sidebar-section">
+      <h3>Phase Stats</h3>
+      <dl>
+        <dt>Terms</dt>
+        <dd>{phaseTerms.length}</dd>
+        <dt>Definitions</dt>
+        <dd>{phaseDefinitions.length}</dd>
+        <dt>Default Confidence</dt>
+        <dd style="text-transform: capitalize">{phaseConfig.default_confidence}</dd>
+      </dl>
+    </div>
+  </Fragment>
+</ContentLayout>
+
+<style>
+  .phase-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 3px solid var(--phase-color);
+  }
+
+  .phase-header h1 {
+    margin: 0.5rem 0 0;
+  }
+
+  .phase-terms {
+    margin-top: 2rem;
+  }
+
+  .term-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+    gap: 1rem;
+  }
+
+  .sidebar-section h3 {
+    margin-top: 0;
+  }
+
+  dl { margin: 0; }
+
+  dt {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin-top: 0.75rem;
+  }
+
+  dd {
+    margin: 0.25rem 0 0 0;
+  }
+</style>

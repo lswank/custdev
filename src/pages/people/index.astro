@@ -1,0 +1,75 @@
+---
+import BaseLayout from '../../layouts/BaseLayout.astro';
+import PersonCard from '../../components/PersonCard.astro';
+import CollectionView from '../../components/CollectionView.astro';
+import type { ColumnDef, FilterDef } from '../../lib/collection-view';
+import { getCollection } from 'astro:content';
+
+const people = await getCollection('people');
+const sorted = people.sort((a, b) => a.data.name.localeCompare(b.data.name));
+const entities = await getCollection('entities');
+const entityNameBySlug = new Map(entities.map((entity) => [entity.id, entity.data.name]));
+const viewItems = sorted.map((person) => ({
+  ...person,
+  data: {
+    ...person.data,
+    company_label: person.data.company
+      ? entityNameBySlug.get(person.data.company) ?? person.data.company
+      : undefined,
+  },
+}));
+
+const statusOptions = ['active', 'alumni', 'contractor'];
+const companyOptions = Array.from(
+  new Set(viewItems.map((person) => person.data.company_label).filter(Boolean))
+).sort() as string[];
+const departmentOptions = Array.from(
+  new Set(sorted.map((person) => person.data.department).filter(Boolean))
+).sort() as string[];
+
+const columns: ColumnDef[] = [
+  { key: 'name', label: 'Name', sortable: true, primary: true, type: 'text' },
+  { key: 'role', label: 'Role', sortable: true, type: 'text' },
+  { key: 'company_label', label: 'Company', sortable: true, type: 'text', priority: 'low' },
+  { key: 'status', label: 'Status', sortable: true, type: 'badge' },
+  { key: 'expertise', label: 'Expertise', sortable: false, type: 'tag-list', priority: 'low' },
+];
+
+const filters: FilterDef[] = [
+  { key: 'status', label: 'Status', options: statusOptions },
+  { key: 'company_label', label: 'Company', options: companyOptions },
+  { key: 'department', label: 'Department', options: departmentOptions },
+];
+---
+
+<BaseLayout title="Team — CustDev Wiki">
+  <h1>Team</h1>
+  <p class="subtitle">Everyone on the team, their roles, and areas of expertise.</p>
+
+  <CollectionView
+    items={viewItems}
+    columns={columns}
+    filters={filters}
+    basePath="/people"
+    emptyMessage="No team members yet."
+  >
+    {viewItems.map((person) => (
+      <div data-cv-id={person.id}>
+        <PersonCard
+          name={person.data.name}
+          slug={person.id}
+          role={person.data.role}
+          status={person.data.status}
+          expertise={person.data.expertise}
+        />
+      </div>
+    ))}
+  </CollectionView>
+</BaseLayout>
+
+<style>
+  .subtitle {
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+  }
+</style>

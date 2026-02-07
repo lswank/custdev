@@ -1,0 +1,52 @@
+---
+import BaseLayout from './BaseLayout.astro';
+import Breadcrumb from '../components/Breadcrumb.astro';
+
+interface Props {
+  title: string;
+  description?: string;
+  breadcrumbs?: Array<{ label: string; href?: string }>;
+}
+
+const { title, description, breadcrumbs = [] } = Astro.props;
+---
+
+<BaseLayout title={title} description={description}>
+  {breadcrumbs.length > 0 && <Breadcrumb items={breadcrumbs} />}
+  <div class="content-layout">
+    <article class="content-main">
+      <slot />
+    </article>
+    <aside class="content-sidebar">
+      <slot name="sidebar" />
+    </aside>
+  </div>
+</BaseLayout>
+
+<style>
+  .content-layout {
+    display: grid;
+    grid-template-columns: 1fr var(--sidebar-width);
+    gap: 2rem;
+    align-items: start;
+  }
+
+  .content-main {
+    min-width: 0;
+  }
+
+  .content-sidebar {
+    position: sticky;
+    top: calc(var(--nav-height) + 1rem);
+  }
+
+  @media (max-width: 768px) {
+    .content-layout {
+      grid-template-columns: 1fr;
+    }
+
+    .content-sidebar {
+      position: static;
+    }
+  }
+</style>

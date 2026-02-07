@@ -1,0 +1,10 @@
+node_modules/
+dist/
+.astro/
+.env
+test-results/
+playwright-report/
+coverage/
+*.log
+.DS_Store
+.claude/

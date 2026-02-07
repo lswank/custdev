@@ -1,0 +1,126 @@
+---
+import BaseLayout from '../layouts/BaseLayout.astro';
+---
+
+<BaseLayout title="Search — CustDev Wiki">
+  <h1>Search</h1>
+  <p class="subtitle">Find terms, definitions, methods, and more across the wiki.</p>
+
+  <div id="search-container">
+    <input
+      type="search"
+      id="search-input"
+      placeholder="Search the wiki..."
+      autofocus
+    />
+    <div id="search-results"></div>
+  </div>
+</BaseLayout>
+
+<script>
+  async function initSearch() {
+    try {
+      // Pagefind generates files at build time — use dynamic URL import to avoid Vite resolution
+      const pagefindPath = `${window.location.origin}/pagefind/pagefind.js`;
+      const pagefind = await import(/* @vite-ignore */ pagefindPath);
+      await pagefind.init();
+
+      const input = document.getElementById('search-input') as HTMLInputElement;
+      const resultsContainer = document.getElementById('search-results')!;
+
+      input.addEventListener('input', async () => {
+        const query = input.value.trim();
+        if (!query) {
+          resultsContainer.innerHTML = '';
+          return;
+        }
+
+        const search = await pagefind.search(query);
+        const results = await Promise.all(
+          search.results.slice(0, 20).map((r: any) => r.data())
+        );
+
+        if (results.length === 0) {
+          resultsContainer.innerHTML = '<p class="no-results">No results found. Try different keywords.</p>';
+          return;
+        }
+
+        resultsContainer.innerHTML = results
+          .map(
+            (r: any) => `
+            <a href="${r.url}" class="result">
+              <h3>${r.meta?.title || r.url}</h3>
+              <p>${r.excerpt}</p>
+            </a>
+          `
+          )
+          .join('');
+      });
+    } catch {
+      const container = document.getElementById('search-container');
+      if (container) {
+        container.innerHTML = '<p>Search index not yet built. Run <code>npm run build</code> to generate the search index.</p>';
+      }
+    }
+  }
+
+  initSearch();
+</script>
+
+<style>
+  .subtitle {
+    color: var(--color-text-muted);
+    margin-bottom: 2rem;
+  }
+
+  #search-input {
+    width: 100%;
+    padding: 1rem;
+    font-size: 1.1rem;
+    border: 2px solid var(--color-border);
+    border-radius: 8px;
+    outline: none;
+    font-family: var(--font-body);
+  }
+
+  #search-input:focus {
+    border-color: var(--color-link);
+  }
+
+  #search-results {
+    margin-top: 1.5rem;
+  }
+
+  #search-results :global(.result) {
+    display: block;
+    padding: 1rem;
+    margin-bottom: 0.5rem;
+    border: 1px solid var(--color-border);
+    border-radius: 6px;
+    text-decoration: none;
+    color: var(--color-text);
+    transition: border-color 0.15s;
+  }
+
+  #search-results :global(.result:hover) {
+    border-color: var(--color-link);
+  }
+
+  #search-results :global(.result h3) {
+    margin: 0 0 0.25rem;
+    font-size: 1.1rem;
+    color: var(--color-link);
+  }
+
+  #search-results :global(.result p) {
+    margin: 0;
+    font-size: 0.9rem;
+    color: var(--color-text-muted);
+  }
+
+  :global(.no-results) {
+    text-align: center;
+    color: var(--color-text-muted);
+    padding: 2rem;
+  }
+</style>

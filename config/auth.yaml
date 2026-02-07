@@ -1,0 +1,34 @@
+auth:
+  provider: "local"
+
+  local:
+    users:
+      - username: "admin"
+        password_hash: "$2b$10$EUtWo7lEmzocikdUtkW.e.IUci9jlmjIL8pl49h.OUoW.h2X/YtQ2"
+        email: "admin@localhost"
+        role: "admin"
+      - username: "editor"
+        password_hash: "$2b$10$MfLOUnanZvhRVETTS3fyP.WEGI3rlDddVS6mcBQdQsBfJCZQDZ7.K"
+        email: "editor@localhost"
+        role: "editor"
+      - username: "contributor"
+        password_hash: "$2b$10$GcPH9wzgiTAM71CXr1GxpuMgcAlyWMcwkZd4XIOhl0uF0ftqWf3oS"
+        email: "contributor@localhost"
+        role: "contributor"
+
+  jwt:
+    secret_env_var: "JWT_SECRET"
+    expires_in: "8h"
+    cookie_name: "wiki_session"
+
+  github:
+    # Uncomment and fill in to switch to GitHub OAuth
+    # client_id: ""
+    # client_secret: ""
+    # allowed_orgs: []
+
+  gitlab:
+    # Uncomment and fill in to switch to GitLab OAuth
+    # client_id: ""
+    # client_secret: ""
+    # allowed_groups: []

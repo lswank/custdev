@@ -1,0 +1,173 @@
+---
+import ContentLayout from '../../layouts/ContentLayout.astro';
+import StatusBadge from '../../components/StatusBadge.astro';
+import { getCollection } from 'astro:content';
+
+const { slug } = Astro.params;
+
+const repositories = await getCollection('repositories');
+const repo = repositories.find((r) => r.id === slug);
+
+if (!repo) {
+  return Astro.redirect('/404');
+}
+
+const { Content } = await repo.render();
+
+const breadcrumbs = [
+  { label: 'Home', href: '/' },
+  { label: 'Repositories', href: '/repositories' },
+  { label: repo.data.name },
+];
+---
+
+<ContentLayout
+  title={`${repo.data.name} — CustDev Wiki`}
+  breadcrumbs={breadcrumbs}
+>
+  <div class="repo-header">
+    <h1>{repo.data.name}</h1>
+    <div class="meta">
+      <StatusBadge status={repo.data.status} />
+      <span class="language">{repo.data.language}</span>
+    </div>
+    <p class="description">{repo.data.description}</p>
+  </div>
+
+  <section class="github-section">
+    <h2>GitHub</h2>
+    <a href={repo.data.github_url} target="_blank" rel="noopener noreferrer">
+      {repo.data.github_url}
+    </a>
+  </section>
+
+  {repo.data.contributors.length > 0 && (
+    <section class="contributors-section">
+      <h2>Contributors</h2>
+      <ul class="tag-list">
+        {repo.data.contributors.map((contributor) => (
+          <li class="tag-pill">{contributor}</li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {repo.data.tech_stack.length > 0 && (
+    <section class="stack-section">
+      <h2>Tech Stack</h2>
+      <ul class="tag-list">
+        {repo.data.tech_stack.map((tech) => (
+          <li class="tag-pill">{tech}</li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  <article class="repo-content" data-pagefind-body>
+    <Content />
+  </article>
+
+  <Fragment slot="sidebar">
+    <div class="sidebar-section">
+      <h3>Details</h3>
+      <dl>
+        <dt>Language</dt>
+        <dd>{repo.data.language}</dd>
+        <dt>Status</dt>
+        <dd><StatusBadge status={repo.data.status} /></dd>
+        <dt>GitHub</dt>
+        <dd>
+          <a href={repo.data.github_url} target="_blank" rel="noopener noreferrer">
+            View on GitHub
+          </a>
+        </dd>
+        {repo.data.contributors.length > 0 && (
+          <>
+            <dt>Contributors</dt>
+            <dd>{repo.data.contributors.join(', ')}</dd>
+          </>
+        )}
+        {repo.data.tech_stack.length > 0 && (
+          <>
+            <dt>Tech Stack</dt>
+            <dd>{repo.data.tech_stack.join(', ')}</dd>
+          </>
+        )}
+      </dl>
+    </div>
+  </Fragment>
+</ContentLayout>
+
+<style>
+  .repo-header {
+    margin-bottom: 2rem;
+    padding-bottom: 1rem;
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .repo-header h1 {
+    margin: 0 0 0.5rem;
+  }
+
+  .meta {
+    display: flex;
+    gap: 0.5rem;
+    align-items: center;
+    margin-bottom: 0.5rem;
+  }
+
+  .language {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+  }
+
+  .description {
+    color: var(--color-text-muted);
+    margin: 0;
+  }
+
+  .github-section,
+  .contributors-section,
+  .stack-section {
+    margin: 1.5rem 0;
+  }
+
+  .tag-list {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 0.4rem;
+  }
+
+  .tag-pill {
+    font-size: 0.8rem;
+    padding: 0.3em 0.7em;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: 4px;
+    color: var(--color-text-muted);
+  }
+
+  .sidebar-section h3 {
+    margin-top: 0;
+    margin-bottom: 1rem;
+    font-size: 1rem;
+  }
+
+  dl {
+    margin: 0;
+  }
+
+  dt {
+    font-weight: 600;
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+    margin-top: 0.75rem;
+  }
+
+  dd {
+    margin: 0.25rem 0 0 0;
+  }
+</style>

@@ -1,0 +1,25 @@
+FROM node:20-alpine
+
+RUN apk add --no-cache git chromium nss freetype freetype-dev harfbuzz ca-certificates ttf-freefont
+
+ENV PLAYWRIGHT_CHROMIUM_EXECUTABLE_PATH=/usr/bin/chromium-browser
+ENV PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD=1
+
+WORKDIR /app
+
+COPY package.json package-lock.json ./
+RUN npm ci
+
+COPY . .
+
+RUN git config --global user.email "wiki@localhost" && \
+    git config --global user.name "Wiki Dev" && \
+    if [ ! -d .git ]; then git init && git add -A && git commit -m "init"; fi
+
+EXPOSE 4321
+
+COPY scripts/docker-entrypoint.sh /docker-entrypoint.sh
+RUN chmod +x /docker-entrypoint.sh
+
+ENTRYPOINT ["/docker-entrypoint.sh"]
+CMD ["npm", "run", "dev", "--", "--host", "0.0.0.0"]
