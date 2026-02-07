@@ -1,5 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
+
+const query = Astro.url.searchParams.get('q') || '';
 ---
 
 <BaseLayout title="Search — CustDev Wiki">
@@ -12,59 +14,106 @@ import BaseLayout from '../layouts/BaseLayout.astro';
       id="search-input"
       placeholder="Search the wiki..."
       autofocus
+      value={query}
     />
     <div id="search-results"></div>
+    <p id="search-empty" class="no-results" hidden>No results found. Try different keywords.</p>
+    <p id="search-hint" class="hint" hidden>Start typing to search across all collections.</p>
   </div>
 </BaseLayout>
 
-<script>
-  async function initSearch() {
-    try {
-      // Pagefind generates files at build time — use dynamic URL import to avoid Vite resolution
-      const pagefindPath = `${window.location.origin}/pagefind/pagefind.js`;
-      const pagefind = await import(/* @vite-ignore */ pagefindPath);
-      await pagefind.init();
+<script is:inline>
+(function () {
+  const input = document.getElementById('search-input');
+  const resultsEl = document.getElementById('search-results');
+  const emptyEl = document.getElementById('search-empty');
+  const hintEl = document.getElementById('search-hint');
+  if (!input || !resultsEl) return;
 
-      const input = document.getElementById('search-input') as HTMLInputElement;
-      const resultsContainer = document.getElementById('search-results')!;
+  let debounceTimer = null;
 
-      input.addEventListener('input', async () => {
-        const query = input.value.trim();
-        if (!query) {
-          resultsContainer.innerHTML = '';
-          return;
-        }
+  const collectionColors = {
+    Terms: 'var(--color-discovery)',
+    People: 'var(--color-validation)',
+    Products: 'var(--color-creation)',
+    Entities: 'var(--color-building)',
+    Repositories: 'var(--color-link)',
+    ADRs: 'var(--color-text-muted)',
+    Processes: 'var(--color-discovery)',
+    Resources: 'var(--color-creation)',
+    Definitions: 'var(--color-validation)',
+  };
 
-        const search = await pagefind.search(query);
-        const results = await Promise.all(
-          search.results.slice(0, 20).map((r: any) => r.data())
-        );
+  function renderResults(results) {
+    if (emptyEl) emptyEl.hidden = results.length > 0;
+    if (hintEl) hintEl.hidden = true;
 
-        if (results.length === 0) {
-          resultsContainer.innerHTML = '<p class="no-results">No results found. Try different keywords.</p>';
-          return;
-        }
-
-        resultsContainer.innerHTML = results
-          .map(
-            (r: any) => `
-            <a href="${r.url}" class="result">
-              <h3>${r.meta?.title || r.url}</h3>
-              <p>${r.excerpt}</p>
-            </a>
-          `
-          )
-          .join('');
-      });
-    } catch {
-      const container = document.getElementById('search-container');
-      if (container) {
-        container.innerHTML = '<p>Search index not yet built. Run <code>npm run build</code> to generate the search index.</p>';
-      }
+    if (results.length === 0) {
+      resultsEl.innerHTML = '';
+      if (emptyEl) emptyEl.hidden = false;
+      return;
     }
+
+    resultsEl.innerHTML = results
+      .map(function (r) {
+        const color = collectionColors[r.collection] || 'var(--color-border)';
+        return '<a href="' + r.url + '" class="result" style="--result-accent:' + color + '">' +
+          '<div class="result-header">' +
+            '<span class="result-collection">' + r.collection + '</span>' +
+          '</div>' +
+          '<h3>' + escapeHtml(r.title) + '</h3>' +
+          '<p>' + escapeHtml(r.excerpt) + '</p>' +
+        '</a>';
+      })
+      .join('');
   }
 
-  initSearch();
+  function escapeHtml(str) {
+    var d = document.createElement('div');
+    d.textContent = str;
+    return d.innerHTML;
+  }
+
+  function doSearch(query) {
+    if (!query) {
+      resultsEl.innerHTML = '';
+      if (emptyEl) emptyEl.hidden = true;
+      if (hintEl) hintEl.hidden = false;
+      return;
+    }
+
+    fetch('/api/search?q=' + encodeURIComponent(query))
+      .then(function (res) { return res.json(); })
+      .then(function (data) { renderResults(data.results || []); })
+      .catch(function () {
+        resultsEl.innerHTML = '<p class="no-results">Search failed. Please try again.</p>';
+      });
+  }
+
+  input.addEventListener('input', function () {
+    clearTimeout(debounceTimer);
+    debounceTimer = setTimeout(function () {
+      var q = input.value.trim();
+      // Update URL without reload
+      var url = new URL(window.location.href);
+      if (q) {
+        url.searchParams.set('q', q);
+      } else {
+        url.searchParams.delete('q');
+      }
+      history.replaceState(null, '', url.toString());
+      doSearch(q);
+    }, 200);
+  });
+
+  // Run search on load if query exists
+  var initialQuery = input.value.trim();
+  if (initialQuery) {
+    doSearch(initialQuery);
+  } else {
+    if (hintEl) hintEl.hidden = false;
+  }
+})();
 </script>
 
 <style>
@@ -78,49 +127,80 @@ import BaseLayout from '../layouts/BaseLayout.astro';
     padding: 1rem;
     font-size: 1.1rem;
     border: 2px solid var(--color-border);
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     outline: none;
     font-family: var(--font-body);
+    background: var(--color-bg);
+    color: var(--color-text);
+    transition: border-color 0.15s, box-shadow 0.15s;
   }
 
   #search-input:focus {
     border-color: var(--color-link);
+    box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-link) 10%, transparent);
   }
 
   #search-results {
     margin-top: 1.5rem;
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-3);
   }
 
   #search-results :global(.result) {
     display: block;
-    padding: 1rem;
-    margin-bottom: 0.5rem;
+    padding: var(--space-4);
     border: 1px solid var(--color-border);
-    border-radius: 6px;
+    border-left: 3px solid var(--result-accent, var(--color-border));
+    border-radius: var(--radius-md);
     text-decoration: none;
     color: var(--color-text);
-    transition: border-color 0.15s;
+    background: var(--color-bg);
+    transition: border-color 0.15s, box-shadow 0.15s;
   }
 
   #search-results :global(.result:hover) {
     border-color: var(--color-link);
+    box-shadow: var(--shadow-sm);
+    text-decoration: none;
+  }
+
+  #search-results :global(.result-header) {
+    margin-bottom: var(--space-1);
+  }
+
+  #search-results :global(.result-collection) {
+    font-size: var(--text-xs);
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    color: var(--result-accent, var(--color-text-muted));
   }
 
   #search-results :global(.result h3) {
-    margin: 0 0 0.25rem;
-    font-size: 1.1rem;
-    color: var(--color-link);
+    margin: 0 0 var(--space-1);
+    font-size: var(--text-base);
+    font-weight: 600;
+    color: var(--color-text);
   }
 
   #search-results :global(.result p) {
     margin: 0;
-    font-size: 0.9rem;
+    font-size: var(--text-sm);
     color: var(--color-text-muted);
+    line-height: 1.5;
   }
 
-  :global(.no-results) {
+  .no-results {
     text-align: center;
     color: var(--color-text-muted);
     padding: 2rem;
+  }
+
+  .hint {
+    text-align: center;
+    color: var(--color-text-muted);
+    padding: var(--space-8);
+    font-size: var(--text-sm);
   }
 </style>
