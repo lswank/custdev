@@ -42,20 +42,20 @@ const OverviewContent = overview ? (await overview.render()).Content : null;
 
 <style>
   .overview {
-    margin-bottom: 3rem;
+    margin-bottom: var(--space-8);
   }
 
   .phase-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-    gap: 1rem;
+    gap: var(--space-4);
   }
 
   .phase-card {
     display: block;
-    padding: 1.5rem;
+    padding: var(--space-6);
     border: 2px solid var(--phase-color);
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     text-decoration: none;
     color: var(--color-text);
     transition: transform 0.15s, box-shadow 0.15s;
@@ -63,7 +63,7 @@ const OverviewContent = overview ? (await overview.render()).Content : null;
 
   .phase-card:hover {
     transform: translateY(-2px);
-    box-shadow: 0 4px 12px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-sm);
     text-decoration: none;
   }
 
@@ -77,18 +77,18 @@ const OverviewContent = overview ? (await overview.render()).Content : null;
     color: white;
     border-radius: 50%;
     font-weight: 700;
-    font-size: 0.85rem;
-    margin-bottom: 0.5rem;
+    font-size: var(--text-sm);
+    margin-bottom: var(--space-2);
   }
 
   .phase-card h3 {
-    margin: 0.5rem 0;
+    margin: var(--space-2) 0;
     color: var(--phase-color);
   }
 
   .phase-card p {
     margin: 0;
-    font-size: 0.85rem;
+    font-size: var(--text-sm);
     color: var(--color-text-muted);
   }
 </style>

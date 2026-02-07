@@ -37,7 +37,7 @@
   min-width: 200px;
   flex: 1;
   max-width: 300px;
-  transition: border-color 0.2s ease, box-shadow 0.2s ease, background-color 0.2s ease;
+  transition: border-color var(--transition-normal), box-shadow var(--transition-normal), background-color var(--transition-normal);
 }
 
 .cv-search::placeholder {
@@ -68,7 +68,7 @@
   display: inline-flex;
   align-items: center;
   gap: var(--space-2);
-  transition: all 0.2s ease;
+  transition: all var(--transition-normal);
   position: relative;
 }
 
@@ -141,14 +141,14 @@
   border-radius: var(--radius-full);
   font-size: var(--text-sm);
   cursor: pointer;
-  transition: all 0.2s ease;
+  transition: all var(--transition-normal);
   font-weight: 500;
   position: relative;
 }
 
 .cv-filter-pill:hover:not([aria-pressed='true']) {
   border-color: var(--color-link);
-  transform: translateY(-1px);
+  transform: translateY(-2px);
   box-shadow: var(--shadow-sm);
   background: color-mix(in srgb, var(--color-link) 5%, var(--color-bg));
 }
@@ -175,7 +175,7 @@
 
 .cv-card-grid > * {
   min-width: 0;
-  transition: transform 0.2s ease, box-shadow 0.2s ease;
+  transition: transform var(--transition-normal), box-shadow var(--transition-normal);
 }
 
 .cv-card-grid > *:hover {
@@ -183,14 +183,14 @@
 }
 
 .cv-list-view {
-  margin-top: 0.5rem;
+  margin-top: var(--space-2);
   overflow-x: auto;
 }
 
 .cv-table {
   width: 100%;
   border-collapse: collapse;
-  font-size: 0.9rem;
+  font-size: var(--text-sm);
 }
 
 .cv-table th,
@@ -215,7 +215,7 @@
 }
 
 .cv-table tbody tr {
-  transition: background-color 0.15s ease;
+  transition: background-color var(--transition-fast);
 }
 
 .cv-table tbody tr:nth-child(even) {
@@ -236,14 +236,14 @@
   cursor: pointer;
   display: inline-flex;
   align-items: center;
-  gap: 0.35rem;
+  gap: var(--space-1);
 }
 
 .cv-sortable::after {
   content: '▲';
   opacity: 0.3;
-  font-size: 0.6rem;
-  margin-left: 0.35rem;
+  font-size: var(--text-xs);
+  margin-left: var(--space-1);
 }
 
 .cv-sortable.cv-sort-desc::after {

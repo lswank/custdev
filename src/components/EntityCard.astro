@@ -1,5 +1,6 @@
 ---
 import StatusBadge from './StatusBadge.astro';
+import { getStatusColor } from '../lib/phase-colors';
 
 interface Props {
   name: string;
@@ -13,16 +14,7 @@ interface Props {
 
 const { name, slug, status, jurisdiction, relationship, entity_type, parent } = Astro.props;
 
-// Status color coding
-const statusColors: Record<string, string> = {
-  active: 'var(--color-creation)',
-  inactive: 'var(--color-text-muted)',
-  dissolved: '#dc3545',
-  acquired: 'var(--color-validation)',
-  planned: 'var(--color-discovery)',
-  divested: '#fd7e14',
-};
-const statusColor = status ? statusColors[status] || 'var(--color-text-muted)' : undefined;
+const statusColor = status ? getStatusColor(status) : undefined;
 ---
 
 <a
@@ -60,7 +52,7 @@ const statusColor = status ? statusColors[status] || 'var(--color-text-muted)' :
     background: var(--color-bg);
     text-decoration: none;
     color: var(--color-text);
-    transition: all 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   }
 
   .entity-card:hover {
@@ -68,6 +60,7 @@ const statusColor = status ? statusColors[status] || 'var(--color-text-muted)' :
     border-color: var(--color-link);
     border-top-color: var(--entity-status-color, var(--color-link));
     box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
   }
 
   .entity-header {

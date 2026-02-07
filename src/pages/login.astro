@@ -47,60 +47,63 @@ const error = Astro.url.searchParams.get('error');
 <style>
   .login-container {
     max-width: 400px;
-    margin: 4rem auto;
-    padding: 2rem;
+    margin: var(--space-12) auto;
+    padding: var(--space-8);
   }
 
   h1 {
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--space-2);
   }
 
   p {
-    color: #666;
-    margin-bottom: 2rem;
+    color: var(--color-text-muted);
+    margin-bottom: var(--space-8);
   }
 
   .field {
-    margin-bottom: 1.5rem;
+    margin-bottom: var(--space-6);
   }
 
   label {
     display: block;
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--space-2);
     font-weight: 600;
+    font-size: var(--text-base);
   }
 
   input {
     width: 100%;
-    padding: 0.75rem;
-    border: 1px solid #ccc;
-    border-radius: 4px;
-    font-size: 1rem;
+    padding: var(--space-3);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    font-size: var(--text-base);
     box-sizing: border-box;
+    background: var(--color-bg);
+    color: var(--color-text);
   }
 
   button {
     width: 100%;
-    padding: 0.75rem;
-    background: #4A90D9;
+    padding: var(--space-3);
+    background: var(--color-link);
     color: white;
     border: none;
-    border-radius: 4px;
-    font-size: 1rem;
+    border-radius: var(--radius-sm);
+    font-size: var(--text-base);
     cursor: pointer;
     font-weight: 600;
   }
 
   button:hover {
-    background: #3a7bc8;
+    background: var(--color-link-hover);
   }
 
   .error {
-    background: #fee;
-    border: 1px solid #fcc;
-    color: #c33;
-    padding: 0.75rem;
-    border-radius: 4px;
-    margin-bottom: 1.5rem;
+    background: var(--color-error-bg);
+    border: 1px solid var(--color-error-border);
+    color: var(--color-error-text);
+    padding: var(--space-3);
+    border-radius: var(--radius-sm);
+    margin-bottom: var(--space-6);
   }
 </style>

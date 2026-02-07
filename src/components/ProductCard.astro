@@ -1,6 +1,7 @@
 ---
 import PhaseIndicator from './PhaseIndicator.astro';
 import StatusBadge from './StatusBadge.astro';
+import { getPhaseColor } from '../lib/phase-colors';
 
 interface Props {
   name: string;
@@ -12,13 +13,7 @@ interface Props {
 
 const { name, slug, phase, status, description } = Astro.props;
 
-const phaseColors: Record<string, string> = {
-  discovery: 'var(--color-discovery)',
-  validation: 'var(--color-validation)',
-  creation: 'var(--color-creation)',
-  building: 'var(--color-building)',
-};
-const phaseColor = phaseColors[phase] || 'var(--color-border)';
+const phaseColor = getPhaseColor(phase);
 ---
 
 <a href={`/products/${slug}`} class="product-card" style={`--product-phase-color: ${phaseColor}`}>
@@ -42,7 +37,7 @@ const phaseColor = phaseColors[phase] || 'var(--color-border)';
     background: var(--color-bg);
     text-decoration: none;
     color: var(--color-text);
-    transition: all 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   }
 
   .product-card:hover {
@@ -50,6 +45,7 @@ const phaseColor = phaseColors[phase] || 'var(--color-border)';
     border-color: var(--product-phase-color);
     box-shadow: var(--shadow-md);
     background: linear-gradient(to bottom, color-mix(in srgb, var(--product-phase-color) 3%, var(--color-bg)) 0%, var(--color-bg) 100%);
+    transform: translateY(-2px);
   }
 
   .product-name {

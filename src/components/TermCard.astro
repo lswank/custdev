@@ -1,6 +1,7 @@
 ---
 import PhaseIndicator from './PhaseIndicator.astro';
 import StatusBadge from './StatusBadge.astro';
+import { getPhaseColor } from '../lib/phase-colors';
 
 interface Props {
   name: string;
@@ -12,13 +13,7 @@ interface Props {
 
 const { name, slug, phase, status, aliases } = Astro.props;
 
-const phaseColors: Record<string, string> = {
-  discovery: 'var(--color-discovery)',
-  validation: 'var(--color-validation)',
-  creation: 'var(--color-creation)',
-  building: 'var(--color-building)',
-};
-const borderColor = phaseColors[phase] || 'var(--color-border)';
+const borderColor = getPhaseColor(phase);
 ---
 
 <a href={`/terms/${slug}`} class="term-card" style={`--term-phase-color: ${borderColor}`}>
@@ -52,7 +47,7 @@ const borderColor = phaseColors[phase] || 'var(--color-border)';
     background: linear-gradient(to right, color-mix(in srgb, var(--term-phase-color) 5%, transparent) 0%, var(--color-bg) 20%);
     text-decoration: none;
     color: var(--color-text);
-    transition: all 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
     position: relative;
   }
 
@@ -60,6 +55,7 @@ const borderColor = phaseColors[phase] || 'var(--color-border)';
     text-decoration: none;
     border-left-width: 6px;
     box-shadow: var(--shadow-md), inset 4px 0 0 color-mix(in srgb, var(--term-phase-color) 10%, transparent);
+    transform: translateY(-2px);
   }
 
   .term-name {

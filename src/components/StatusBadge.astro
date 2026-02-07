@@ -42,10 +42,10 @@ const color = statusColorMap[status.toLowerCase()] ?? '#888';
 <style>
   .status-badge {
     display: inline-block;
-    font-size: 0.7rem;
+    font-size: var(--text-xs);
     font-weight: 600;
     padding: 0.2em 0.6em;
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
     white-space: nowrap;
     line-height: 1;
     background: color-mix(in srgb, var(--badge-color) 15%, transparent);

@@ -52,13 +52,14 @@ const initials = name
     background: var(--color-bg);
     text-decoration: none;
     color: var(--color-text);
-    transition: all 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   }
 
   .person-card:hover {
     text-decoration: none;
     border-color: var(--color-link);
     box-shadow: var(--shadow-md);
+    transform: translateY(-2px);
   }
 
   .person-card:hover .person-avatar {
@@ -87,7 +88,7 @@ const initials = name
     justify-content: center;
     line-height: 1;
     border: 2px solid var(--color-bg);
-    box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+    box-shadow: var(--shadow-sm);
     transition: all 0.2s ease;
   }
 

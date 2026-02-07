@@ -91,20 +91,20 @@ const breadcrumbs = [
 
 <style>
   .product-header {
-    margin-bottom: 2rem;
+    margin-bottom: var(--space-8);
     padding-bottom: 1rem;
     border-bottom: 1px solid var(--color-border);
   }
 
   .product-header h1 {
-    margin: 0 0 0.5rem;
+    margin: 0 0 var(--space-2);
   }
 
   .meta {
     display: flex;
-    gap: 0.5rem;
+    gap: var(--space-2);
     align-items: center;
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--space-2);
   }
 
   .description {
@@ -113,18 +113,18 @@ const breadcrumbs = [
   }
 
   .product-terms {
-    margin-top: 2rem;
+    margin-top: var(--space-8);
   }
 
   .term-intro {
     color: var(--color-text-muted);
-    margin-bottom: 1rem;
+    margin-bottom: var(--space-4);
   }
 
   .term-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1rem;
+    gap: var(--space-4);
   }
 
   .sidebar-section h3 {

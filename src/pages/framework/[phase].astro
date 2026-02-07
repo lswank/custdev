@@ -85,23 +85,23 @@ const breadcrumbs = [
 
 <style>
   .phase-header {
-    margin-bottom: 2rem;
+    margin-bottom: var(--space-8);
     padding-bottom: 1rem;
     border-bottom: 3px solid var(--phase-color);
   }
 
   .phase-header h1 {
-    margin: 0.5rem 0 0;
+    margin: var(--space-2) 0 0;
   }
 
   .phase-terms {
-    margin-top: 2rem;
+    margin-top: var(--space-8);
   }
 
   .term-grid {
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-    gap: 1rem;
+    gap: var(--space-4);
   }
 
   .sidebar-section h3 {
@@ -112,12 +112,12 @@ const breadcrumbs = [
 
   dt {
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: var(--text-sm);
     color: var(--color-text-muted);
-    margin-top: 0.75rem;
+    margin-top: var(--space-3);
   }
 
   dd {
-    margin: 0.25rem 0 0 0;
+    margin: var(--space-1) 0 0 0;
   }
 </style>

@@ -1,5 +1,6 @@
 ---
 import StatusBadge from './StatusBadge.astro';
+import { getStatusColor } from '../lib/phase-colors';
 
 interface Props {
   title: string;
@@ -16,14 +17,7 @@ const formattedDate = new Date(date).toLocaleDateString('en-US', {
   day: 'numeric',
 });
 
-const statusColors: Record<string, string> = {
-  accepted: 'var(--color-creation)',
-  proposed: 'var(--color-discovery)',
-  deprecated: '#6c757d',
-  superseded: 'var(--color-validation)',
-  rejected: '#dc3545',
-};
-const badgeColor = statusColors[status] || 'var(--color-text-muted)';
+const badgeColor = getStatusColor(status);
 
 // Status icons
 const statusIcons: Record<string, string> = {
@@ -64,13 +58,14 @@ const statusIcon = statusIcons[status] || '';
     background: linear-gradient(to right, color-mix(in srgb, var(--adr-color) 3%, transparent) 0%, var(--color-bg) 30%);
     text-decoration: none;
     color: var(--color-text);
-    transition: all 0.2s ease;
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
   }
 
   .adr-card:hover {
     text-decoration: none;
     border-color: var(--adr-color);
     box-shadow: var(--shadow-md), inset 3px 0 0 color-mix(in srgb, var(--adr-color) 15%, transparent);
+    transform: translateY(-2px);
   }
 
   .adr-header {
