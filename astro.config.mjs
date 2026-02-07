@@ -10,4 +10,9 @@ export default defineConfig({
   integrations: [
     react(),
   ],
+  vite: {
+    resolve: {
+      preserveSymlinks: true,
+    },
+  },
 });
