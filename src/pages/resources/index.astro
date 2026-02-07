@@ -39,10 +39,10 @@ const filters: FilterDef[] = [
     emptyMessage="No resources yet."
   >
     {sorted.map((resource) => (
-      <div data-cv-id={resource.id}>
+      <div data-cv-id={resource.id.replace(/\.md$/, '')}>
         <ResourceCard
           name={resource.data.name}
-          slug={resource.id}
+          slug={resource.id.replace(/\.md$/, '')}
           category={resource.data.category}
           status={resource.data.status}
           url={resource.data.url}

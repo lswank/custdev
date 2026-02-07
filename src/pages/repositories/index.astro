@@ -40,10 +40,10 @@ const filters: FilterDef[] = [
     emptyMessage="No repositories yet."
   >
     {sorted.map((repo) => (
-      <div data-cv-id={repo.id}>
+      <div data-cv-id={repo.id.replace(/\.md$/, '')}>
         <RepoCard
           name={repo.data.name}
-          slug={repo.id}
+          slug={repo.id.replace(/\.md$/, '')}
           language={repo.data.language}
           description={repo.data.description}
           status={repo.data.status}

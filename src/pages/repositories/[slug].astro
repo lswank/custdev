@@ -6,13 +6,25 @@ import { getCollection } from 'astro:content';
 const { slug } = Astro.params;
 
 const repositories = await getCollection('repositories');
-const repo = repositories.find((r) => r.id === slug);
+const repo = repositories.find((r) => r.id.replace(/\.md$/, '') === slug);
 
 if (!repo) {
   return Astro.redirect('/404');
 }
 
 const { Content } = await repo.render();
+
+// Get people contributors
+const people = await getCollection('people');
+const contributorPeople = people.filter((p) =>
+  repo.data.contributors.some((c) => c === p.data.name || c === p.data.github || c === p.id.replace(/\.md$/, ''))
+);
+
+// Get related ADRs
+const adrs = await getCollection('adrs');
+const relatedAdrs = adrs.filter((adr) =>
+  adr.data.tags?.some((tag) => repo.data.name.toLowerCase().includes(tag.toLowerCase()))
+);
 
 const breadcrumbs = [
   { label: 'Home', href: '/' },
@@ -34,30 +46,48 @@ const breadcrumbs = [
     <p class="description">{repo.data.description}</p>
   </div>
 
-  <section class="github-section">
-    <h2>GitHub</h2>
-    <a href={repo.data.github_url} target="_blank" rel="noopener noreferrer">
-      {repo.data.github_url}
+  <div class="repo-links">
+    <a href={repo.data.github_url} target="_blank" rel="noopener noreferrer" class="github-link">
+      <svg width="16" height="16" fill="currentColor" viewBox="0 0 16 16">
+        <path d="M8 0C3.58 0 0 3.58 0 8c0 3.54 2.29 6.53 5.47 7.59.4.07.55-.17.55-.38 0-.19-.01-.82-.01-1.49-2.01.37-2.53-.49-2.69-.94-.09-.23-.48-.94-.82-1.13-.28-.15-.68-.52-.01-.53.63-.01 1.08.58 1.23.82.72 1.21 1.87.87 2.33.66.07-.52.28-.87.51-1.07-1.78-.2-3.64-.89-3.64-3.95 0-.87.31-1.59.82-2.15-.08-.2-.36-1.02.08-2.12 0 0 .67-.21 2.2.82.64-.18 1.32-.27 2-.27.68 0 1.36.09 2 .27 1.53-1.04 2.2-.82 2.2-.82.44 1.1.16 1.92.08 2.12.51.56.82 1.27.82 2.15 0 3.07-1.87 3.75-3.65 3.95.29.25.54.73.54 1.48 0 1.07-.01 1.93-.01 2.2 0 .21.15.46.55.38A8.012 8.012 0 0 0 16 8c0-4.42-3.58-8-8-8z"/>
+      </svg>
+      View on GitHub
     </a>
-  </section>
-
-  {repo.data.contributors.length > 0 && (
-    <section class="contributors-section">
-      <h2>Contributors</h2>
-      <ul class="tag-list">
-        {repo.data.contributors.map((contributor) => (
-          <li class="tag-pill">{contributor}</li>
-        ))}
-      </ul>
-    </section>
-  )}
+  </div>
 
   {repo.data.tech_stack.length > 0 && (
     <section class="stack-section">
       <h2>Tech Stack</h2>
-      <ul class="tag-list">
+      <div class="tech-pills">
         {repo.data.tech_stack.map((tech) => (
-          <li class="tag-pill">{tech}</li>
+          <span class="tech-pill">{tech}</span>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {contributorPeople.length > 0 && (
+    <section class="contributors-section">
+      <h2>Contributors ({contributorPeople.length})</h2>
+      <div class="contributors-grid">
+        {contributorPeople.map((person) => (
+          <a href={`/people/${person.id.replace(/\.md$/, '')}`} class="contributor-card">
+            <div class="contributor-name">{person.data.name}</div>
+            <div class="contributor-role">{person.data.role}</div>
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {relatedAdrs.length > 0 && (
+    <section class="adrs-section">
+      <h2>Related ADRs ({relatedAdrs.length})</h2>
+      <ul class="adr-list">
+        {relatedAdrs.map((adr) => (
+          <li>
+            <a href={`/adrs/${adr.data.number}`}>ADR-{adr.data.number}: {adr.data.title}</a>
+          </li>
         ))}
       </ul>
     </section>
@@ -126,34 +156,104 @@ const breadcrumbs = [
     margin: 0;
   }
 
-  .github-section,
-  .contributors-section,
-  .stack-section {
-    margin: 1.5rem 0;
+  .repo-links {
+    margin: var(--space-6) 0;
   }
 
-  .tag-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
+  .github-link {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3) var(--space-6);
+    background: var(--color-text);
+    color: var(--color-bg);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    font-weight: 600;
+    transition: all 0.2s ease;
+  }
+
+  .github-link:hover {
+    background: var(--color-link);
+    transform: translateY(-1px);
+    box-shadow: var(--shadow-md);
+  }
+
+  .stack-section,
+  .contributors-section,
+  .adrs-section {
+    margin: var(--space-8) 0;
+  }
+
+  .tech-pills {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4rem;
+    gap: var(--space-3);
+    margin-top: var(--space-3);
   }
 
-  .tag-pill {
-    font-size: 0.8rem;
-    padding: 0.3em 0.7em;
+  .tech-pill {
+    font-size: var(--text-sm);
+    padding: 0.4em 0.9em;
+    background: linear-gradient(135deg, var(--color-discovery), var(--color-validation));
+    color: white;
+    border-radius: var(--radius-full);
+    font-weight: 500;
+  }
+
+  .contributors-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+  }
+
+  .contributor-card {
+    display: block;
+    padding: var(--space-3);
     background: var(--color-bg-secondary);
     border: 1px solid var(--color-border);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .contributor-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-link);
+  }
+
+  .contributor-name {
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: var(--space-1);
+  }
+
+  .contributor-role {
+    font-size: var(--text-sm);
     color: var(--color-text-muted);
+  }
+
+  .adr-list {
+    list-style: none;
+    margin: var(--space-3) 0 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .adr-list li {
+    padding: var(--space-3);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
   }
 
   .sidebar-section h3 {
     margin-top: 0;
-    margin-bottom: 1rem;
-    font-size: 1rem;
+    margin-bottom: var(--space-4);
+    font-size: var(--text-base);
   }
 
   dl {
@@ -162,12 +262,16 @@ const breadcrumbs = [
 
   dt {
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: var(--text-sm);
     color: var(--color-text-muted);
-    margin-top: 0.75rem;
+    margin-top: var(--space-3);
+  }
+
+  dt:first-child {
+    margin-top: 0;
   }
 
   dd {
-    margin: 0.25rem 0 0 0;
+    margin: var(--space-1) 0 0 0;
   }
 </style>

@@ -29,7 +29,15 @@ const borderColor = phaseColors[phase] || 'var(--color-border)';
   </div>
   {aliases && aliases.length > 0 && (
     <p class="term-aliases">
-      <span class="aliases-label">Also:</span> {aliases.join(', ')}
+      <span class="aliases-label">Also:</span>{' '}
+      {aliases.length > 3 ? (
+        <>
+          {aliases.slice(0, 3).join(', ')}
+          <span class="aliases-more"> +{aliases.length - 3} more</span>
+        </>
+      ) : (
+        aliases.join(', ')
+      )}
     </p>
   )}
 </a>
@@ -39,24 +47,27 @@ const borderColor = phaseColors[phase] || 'var(--color-border)';
     display: block;
     padding: var(--space-4);
     border: 1px solid var(--color-border);
-    border-left: 4px solid var(--term-phase-color);
+    border-left: 5px solid var(--term-phase-color);
     border-radius: var(--radius-md);
-    background: var(--color-bg);
+    background: linear-gradient(to right, color-mix(in srgb, var(--term-phase-color) 5%, transparent) 0%, var(--color-bg) 20%);
     text-decoration: none;
     color: var(--color-text);
-    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+    transition: all 0.2s ease;
+    position: relative;
   }
 
   .term-card:hover {
     text-decoration: none;
-    box-shadow: var(--shadow-md);
+    border-left-width: 6px;
+    box-shadow: var(--shadow-md), inset 4px 0 0 color-mix(in srgb, var(--term-phase-color) 10%, transparent);
   }
 
   .term-name {
-    margin: 0 0 var(--space-2) 0;
-    font-size: var(--text-lg, 1.1rem);
+    margin: 0 0 var(--space-3) 0;
+    font-size: var(--text-lg);
     line-height: 1.3;
     color: var(--color-text);
+    font-weight: 600;
   }
 
   .term-meta {
@@ -64,15 +75,25 @@ const borderColor = phaseColors[phase] || 'var(--color-border)';
     align-items: center;
     gap: var(--space-2);
     flex-wrap: wrap;
+    margin-bottom: var(--space-2);
   }
 
   .term-aliases {
-    margin: var(--space-2) 0 0;
-    font-size: var(--text-xs, 0.8rem);
+    margin: var(--space-3) 0 0;
+    font-size: var(--text-xs);
     color: var(--color-text-muted);
+    line-height: 1.4;
+    border-top: 1px solid var(--color-border);
+    padding-top: var(--space-2);
   }
 
   .aliases-label {
+    font-weight: 700;
+    color: var(--color-text);
+  }
+
+  .aliases-more {
     font-weight: 600;
+    color: var(--color-link);
   }
 </style>

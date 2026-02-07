@@ -19,18 +19,34 @@ const formattedDate = new Date(date).toLocaleDateString('en-US', {
 const statusColors: Record<string, string> = {
   accepted: 'var(--color-creation)',
   proposed: 'var(--color-discovery)',
-  deprecated: 'var(--color-text-muted)',
+  deprecated: '#6c757d',
   superseded: 'var(--color-validation)',
+  rejected: '#dc3545',
 };
 const badgeColor = statusColors[status] || 'var(--color-text-muted)';
+
+// Status icons
+const statusIcons: Record<string, string> = {
+  accepted: '✓',
+  proposed: '?',
+  deprecated: '×',
+  superseded: '→',
+  rejected: '!',
+};
+const statusIcon = statusIcons[status] || '';
 ---
 
-<a href={`/adrs/${number}`} class="adr-card">
+<a href={`/adrs/${number}`} class="adr-card" style={`--adr-color: ${badgeColor}`}>
   <div class="adr-header">
-    <span class="adr-number" style={`--adr-color: ${badgeColor}`}>
-      {String(number).padStart(3, '0')}
+    <span class="adr-number">
+      #{String(number).padStart(3, '0')}
     </span>
-    <h3 class="adr-title">{title}</h3>
+    <div class="adr-title-group">
+      <h3 class="adr-title">{title}</h3>
+      <span class="adr-status-indicator" title={status}>
+        {statusIcon}
+      </span>
+    </div>
   </div>
   <div class="adr-meta">
     <StatusBadge status={status} />
@@ -43,43 +59,69 @@ const badgeColor = statusColors[status] || 'var(--color-text-muted)';
     display: block;
     padding: var(--space-4);
     border: 1px solid var(--color-border);
+    border-left: 4px solid var(--adr-color);
     border-radius: var(--radius-md);
-    background: var(--color-bg);
+    background: linear-gradient(to right, color-mix(in srgb, var(--adr-color) 3%, transparent) 0%, var(--color-bg) 30%);
     text-decoration: none;
     color: var(--color-text);
-    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+    transition: all 0.2s ease;
   }
 
   .adr-card:hover {
     text-decoration: none;
-    border-color: var(--color-link);
-    box-shadow: var(--shadow-md);
+    border-color: var(--adr-color);
+    box-shadow: var(--shadow-md), inset 3px 0 0 color-mix(in srgb, var(--adr-color) 15%, transparent);
   }
 
   .adr-header {
     display: flex;
     align-items: flex-start;
     gap: var(--space-3);
-    margin-bottom: var(--space-2);
+    margin-bottom: var(--space-3);
   }
 
   .adr-number {
     flex-shrink: 0;
     font-family: var(--font-mono);
-    font-size: var(--text-sm, 0.875rem);
-    font-weight: 700;
+    font-size: var(--text-lg);
+    font-weight: 800;
     color: var(--adr-color);
-    background: color-mix(in srgb, var(--adr-color) 12%, transparent);
-    padding: var(--space-1) var(--space-2);
-    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--adr-color) 15%, transparent);
+    padding: var(--space-2) var(--space-3);
+    border-radius: var(--radius-md);
     line-height: 1;
+    border: 2px solid color-mix(in srgb, var(--adr-color) 30%, transparent);
+  }
+
+  .adr-title-group {
+    flex: 1;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-2);
   }
 
   .adr-title {
     margin: 0;
-    font-size: var(--text-base, 1rem);
-    line-height: 1.3;
+    font-size: var(--text-base);
+    line-height: 1.4;
     color: var(--color-text);
+    font-weight: 600;
+    flex: 1;
+  }
+
+  .adr-status-indicator {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--text-sm);
+    font-weight: 700;
+    color: var(--adr-color);
+    background: color-mix(in srgb, var(--adr-color) 15%, transparent);
+    border-radius: var(--radius-full);
+    border: 2px solid color-mix(in srgb, var(--adr-color) 30%, transparent);
   }
 
   .adr-meta {
@@ -90,7 +132,8 @@ const badgeColor = statusColors[status] || 'var(--color-text-muted)';
   }
 
   .adr-date {
-    font-size: var(--text-xs, 0.8rem);
+    font-size: var(--text-xs);
     color: var(--color-text-muted);
+    font-weight: 500;
   }
 </style>

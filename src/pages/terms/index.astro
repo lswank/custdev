@@ -37,10 +37,10 @@ const filters: FilterDef[] = [
     emptyMessage="No terms found."
   >
     {sorted.map((term) => (
-      <div data-cv-id={term.id}>
+      <div data-cv-id={term.id.replace(/\.md$/, '')}>
         <TermCard
           name={term.data.name}
-          slug={term.id}
+          slug={term.id.replace(/\.md$/, '')}
           phase={term.data.custdev_phase}
           status={term.data.status}
           aliases={term.data.aliases}

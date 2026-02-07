@@ -40,10 +40,10 @@ const filters: FilterDef[] = [
     emptyMessage="No processes yet."
   >
     {sorted.map((process) => (
-      <div data-cv-id={process.id}>
+      <div data-cv-id={process.id.replace(/\.md$/, '')}>
         <ProcessCard
           title={process.data.title}
-          slug={process.id}
+          slug={process.id.replace(/\.md$/, '')}
           category={process.data.category}
           status={process.data.status}
           owner={process.data.owner}

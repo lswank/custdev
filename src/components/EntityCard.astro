@@ -12,14 +12,29 @@ interface Props {
 }
 
 const { name, slug, status, jurisdiction, relationship, entity_type, parent } = Astro.props;
+
+// Status color coding
+const statusColors: Record<string, string> = {
+  active: 'var(--color-creation)',
+  inactive: 'var(--color-text-muted)',
+  dissolved: '#dc3545',
+  acquired: 'var(--color-validation)',
+  planned: 'var(--color-discovery)',
+  divested: '#fd7e14',
+};
+const statusColor = status ? statusColors[status] || 'var(--color-text-muted)' : undefined;
 ---
 
-<a href={`/entities/${slug}`} class="entity-card">
+<a
+  href={`/entities/${slug}`}
+  class="entity-card"
+  style={statusColor ? `--entity-status-color: ${statusColor}` : undefined}
+>
   <div class="entity-header">
     {parent && (
-      <span class="entity-connector" aria-hidden="true">
-        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
-          <path d="M12 2v8M6 14h12M6 14v6M18 14v6" stroke-linecap="round"/>
+      <span class="entity-connector" aria-hidden="true" title={`Child of ${parent}`}>
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5">
+          <path d="M12 2v8M6 14h12M6 14v6M18 14v6" stroke-linecap="round" stroke-linejoin="round"/>
         </svg>
       </span>
     )}
@@ -27,12 +42,12 @@ const { name, slug, status, jurisdiction, relationship, entity_type, parent } = 
   </div>
   <div class="entity-meta">
     {status && <StatusBadge status={status} />}
-    {relationship && <span class="entity-pill">{relationship.replace(/-/g, ' ')}</span>}
-    {jurisdiction && <span class="entity-pill">{jurisdiction}</span>}
+    {entity_type && <span class="entity-type-badge">{entity_type.replace(/-/g, ' ')}</span>}
   </div>
-  {entity_type && (
-    <p class="entity-type">{entity_type.replace(/-/g, ' ')}</p>
-  )}
+  <div class="entity-details">
+    {relationship && <span class="entity-pill"><strong>Relationship:</strong> {relationship.replace(/-/g, ' ')}</span>}
+    {jurisdiction && <span class="entity-pill"><strong>Jurisdiction:</strong> {jurisdiction}</span>}
+  </div>
 </a>
 
 <style>
@@ -40,35 +55,39 @@ const { name, slug, status, jurisdiction, relationship, entity_type, parent } = 
     display: block;
     padding: var(--space-4);
     border: 1px solid var(--color-border);
+    border-top: 3px solid var(--entity-status-color, var(--color-border));
     border-radius: var(--radius-md);
     background: var(--color-bg);
     text-decoration: none;
     color: var(--color-text);
-    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+    transition: all 0.2s ease;
   }
 
   .entity-card:hover {
     text-decoration: none;
     border-color: var(--color-link);
+    border-top-color: var(--entity-status-color, var(--color-link));
     box-shadow: var(--shadow-md);
   }
 
   .entity-header {
     display: flex;
-    align-items: center;
+    align-items: flex-start;
     gap: var(--space-2);
-    margin-bottom: var(--space-2);
+    margin-bottom: var(--space-3);
   }
 
   .entity-connector {
-    color: var(--color-text-muted);
+    color: var(--color-link);
     flex-shrink: 0;
+    margin-top: 2px;
   }
 
   .entity-name {
     margin: 0;
-    font-size: var(--text-lg, 1.1rem);
+    font-size: var(--text-lg);
     line-height: 1.3;
+    font-weight: 600;
   }
 
   .entity-meta {
@@ -76,23 +95,37 @@ const { name, slug, status, jurisdiction, relationship, entity_type, parent } = 
     flex-wrap: wrap;
     gap: var(--space-2);
     align-items: center;
+    margin-bottom: var(--space-3);
+  }
+
+  .entity-type-badge {
+    font-size: var(--text-xs);
+    padding: var(--space-1) var(--space-2);
+    border-radius: var(--radius-sm);
+    background: color-mix(in srgb, var(--color-link) 12%, transparent);
+    border: 1px solid color-mix(in srgb, var(--color-link) 30%, transparent);
+    color: var(--color-link);
+    text-transform: capitalize;
+    white-space: nowrap;
+    font-weight: 600;
+  }
+
+  .entity-details {
+    display: flex;
+    flex-direction: column;
+    gap: var(--space-1);
+    padding-top: var(--space-3);
+    border-top: 1px solid var(--color-border);
   }
 
   .entity-pill {
-    font-size: var(--text-xs, 0.7rem);
-    padding: 0.2em 0.6em;
-    border-radius: var(--radius-full);
-    background: var(--color-bg-secondary);
-    border: 1px solid var(--color-border);
+    font-size: var(--text-xs);
     color: var(--color-text-muted);
-    text-transform: capitalize;
-    white-space: nowrap;
+    line-height: 1.4;
   }
 
-  .entity-type {
-    margin: var(--space-3) 0 0;
-    font-size: var(--text-sm, 0.85rem);
-    color: var(--color-text-muted);
-    text-transform: capitalize;
+  .entity-pill strong {
+    color: var(--color-text);
+    font-weight: 600;
   }
 </style>

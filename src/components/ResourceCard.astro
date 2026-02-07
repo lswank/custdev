@@ -10,14 +10,32 @@ interface Props {
 }
 
 const { name, slug, category, status, url } = Astro.props;
+
+// Extract domain from URL for favicon
+const domain = url ? new URL(url).hostname : null;
 ---
 
 <a href={`/resources/${slug}`} class="resource-card">
   <div class="resource-header">
-    <h3 class="resource-name">
-      {name}
-      {url && <span class="external-icon" title="External link">{'\u2197'}</span>}
-    </h3>
+    {domain && (
+      <img
+        src={`https://www.google.com/s2/favicons?domain=${domain}&sz=32`}
+        alt=""
+        class="resource-favicon"
+        width="20"
+        height="20"
+        loading="lazy"
+      />
+    )}
+    <div class="resource-title-group">
+      <h3 class="resource-name">{name}</h3>
+      {url && (
+        <span class="resource-url" title={url}>
+          {domain}
+        </span>
+      )}
+    </div>
+    {url && <span class="external-icon" title="External link" aria-hidden="true">{'\u2197'}</span>}
   </div>
   <div class="resource-meta">
     <StatusBadge status={category} />
@@ -28,44 +46,77 @@ const { name, slug, category, status, url } = Astro.props;
 <style>
   .resource-card {
     display: block;
-    padding: 1.25rem;
+    padding: var(--space-4);
     border: 1px solid var(--color-border);
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     background: var(--color-bg);
     text-decoration: none;
     color: var(--color-text);
-    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+    transition: all 0.2s ease;
   }
 
   .resource-card:hover {
     text-decoration: none;
     border-color: var(--color-link);
-    box-shadow: 0 2px 8px var(--color-shadow, rgba(0, 0, 0, 0.08));
+    box-shadow: var(--shadow-md);
+  }
+
+  .resource-card:hover .resource-favicon {
+    transform: scale(1.1);
   }
 
   .resource-header {
-    margin: 0 0 0.5rem 0;
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    margin-bottom: var(--space-3);
+  }
+
+  .resource-favicon {
+    flex-shrink: 0;
+    width: 24px;
+    height: 24px;
+    border-radius: var(--radius-sm);
+    background: var(--color-bg-secondary);
+    padding: var(--space-1);
+    transition: transform 0.2s ease;
+    margin-top: 2px;
+  }
+
+  .resource-title-group {
+    flex: 1;
+    min-width: 0;
   }
 
   .resource-name {
-    margin: 0;
-    font-size: 1.1rem;
+    margin: 0 0 var(--space-1) 0;
+    font-size: var(--text-lg);
     line-height: 1.3;
     color: var(--color-text);
-    display: flex;
-    align-items: center;
-    gap: 0.35rem;
+    font-weight: 600;
+  }
+
+  .resource-url {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    font-family: var(--font-mono);
+    display: block;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
   }
 
   .external-icon {
-    font-size: 0.85rem;
+    flex-shrink: 0;
+    font-size: var(--text-base);
     color: var(--color-text-muted);
+    margin-top: 2px;
   }
 
   .resource-meta {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--space-2);
     flex-wrap: wrap;
   }
 </style>

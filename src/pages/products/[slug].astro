@@ -8,7 +8,7 @@ import { getCollection } from 'astro:content';
 const { slug } = Astro.params;
 
 const products = await getCollection('products');
-const product = products.find((p) => p.id === slug);
+const product = products.find((p) => p.id.replace(/\.md$/, '') === slug);
 
 if (!product) {
   return Astro.redirect('/404');
@@ -23,7 +23,7 @@ const productDefs = allDefinitions.filter((d) => d.data.product === slug);
 // Get the terms that have product-specific definitions
 const termSlugs = [...new Set(productDefs.map((d) => d.data.term))];
 const allTerms = await getCollection('terms');
-const productTerms = allTerms.filter((t) => termSlugs.includes(t.id));
+const productTerms = allTerms.filter((t) => termSlugs.includes(t.id.replace(/\.md$/, '')));
 
 const breadcrumbs = [
   { label: 'Home', href: '/' },
@@ -59,7 +59,7 @@ const breadcrumbs = [
         {productTerms.map((term) => (
           <TermCard
             name={term.data.name}
-            slug={term.id}
+            slug={term.id.replace(/\.md$/, '')}
             phase={term.data.custdev_phase}
             status={term.data.status}
           />
@@ -129,6 +129,8 @@ const breadcrumbs = [
 
   .sidebar-section h3 {
     margin-top: 0;
+    margin-bottom: var(--space-4);
+    font-size: var(--text-base);
   }
 
   dl {
@@ -137,12 +139,16 @@ const breadcrumbs = [
 
   dt {
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: var(--text-sm);
     color: var(--color-text-muted);
-    margin-top: 0.75rem;
+    margin-top: var(--space-3);
+  }
+
+  dt:first-child {
+    margin-top: 0;
   }
 
   dd {
-    margin: 0.25rem 0 0 0;
+    margin: var(--space-1) 0 0 0;
   }
 </style>

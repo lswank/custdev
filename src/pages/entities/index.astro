@@ -7,7 +7,7 @@ import { getCollection } from 'astro:content';
 
 const entities = await getCollection('entities');
 const sorted = entities.sort((a, b) => a.data.name.localeCompare(b.data.name));
-const nameBySlug = new Map(sorted.map((entity) => [entity.id, entity.data.name]));
+const nameBySlug = new Map(sorted.map((entity) => [entity.id.replace(/\.md$/, ''), entity.data.name]));
 const viewItems = sorted.map((entity) => ({
   ...entity,
   data: {
@@ -51,10 +51,10 @@ const filters: FilterDef[] = [
     emptyMessage="No entities yet."
   >
     {viewItems.map((entity) => (
-      <div data-cv-id={entity.id}>
+      <div data-cv-id={entity.id.replace(/\.md$/, '')}>
         <EntityCard
           name={entity.data.name}
-          slug={entity.id}
+          slug={entity.id.replace(/\.md$/, '')}
           status={entity.data.status}
           jurisdiction={entity.data.jurisdiction}
           relationship={entity.data.relationship}

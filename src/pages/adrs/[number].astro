@@ -14,6 +14,12 @@ if (!adr) {
 
 const { Content } = await adr.render();
 
+// Get deciders as people
+const people = await getCollection('people');
+const deciderPeople = adr.data.deciders
+  .map((decider) => people.find((p) => p.data.name === decider || p.id.replace(/\.md$/, '') === decider))
+  .filter(Boolean);
+
 const breadcrumbs = [
   { label: 'Home', href: '/' },
   { label: 'ADRs', href: '/adrs' },
@@ -26,21 +32,27 @@ const breadcrumbs = [
   breadcrumbs={breadcrumbs}
 >
   <div class="adr-header">
-    <h1>ADR-{adr.data.number}: {adr.data.title}</h1>
+    <div class="adr-number">ADR-{adr.data.number}</div>
+    <h1>{adr.data.title}</h1>
     <div class="meta">
-      <StatusBadge status={adr.data.status} />
+      <div class="status-large">
+        <StatusBadge status={adr.data.status} />
+      </div>
       <time>{adr.data.date.toLocaleDateString()}</time>
     </div>
   </div>
 
-  {adr.data.deciders.length > 0 && (
+  {deciderPeople.length > 0 && (
     <section class="deciders-section">
-      <h2>Deciders</h2>
-      <ul class="tag-list">
-        {adr.data.deciders.map((decider) => (
-          <li class="tag-pill">{decider}</li>
+      <h2>Decision Makers</h2>
+      <div class="deciders-grid">
+        {deciderPeople.map((person) => (
+          <a href={`/people/${person!.id.replace(/\.md$/, '')}`} class="decider-card">
+            <div class="decider-name">{person!.data.name}</div>
+            <div class="decider-role">{person!.data.role}</div>
+          </a>
         ))}
-      </ul>
+      </div>
     </section>
   )}
 
@@ -88,30 +100,81 @@ const breadcrumbs = [
 
 <style>
   .adr-header {
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--color-border);
+    margin-bottom: var(--space-8);
+    padding: var(--space-6);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .adr-number {
+    font-size: var(--text-sm);
+    font-weight: 700;
+    color: var(--color-link);
+    margin-bottom: var(--space-2);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
   }
 
   .adr-header h1 {
-    margin: 0 0 0.5rem;
+    margin: 0 0 var(--space-4);
+    font-size: var(--text-2xl);
   }
 
   .meta {
     display: flex;
-    gap: 0.5rem;
+    gap: var(--space-4);
     align-items: center;
-    margin-bottom: 0.5rem;
+  }
+
+  .status-large {
+    transform: scale(1.3);
+    transform-origin: left;
   }
 
   .meta time {
     color: var(--color-text-muted);
-    font-size: 0.9rem;
+    font-size: var(--text-sm);
   }
 
   .deciders-section,
   .tags-section {
-    margin: 1.5rem 0;
+    margin: var(--space-8) 0;
+  }
+
+  .deciders-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+    gap: var(--space-3);
+    margin-top: var(--space-4);
+  }
+
+  .decider-card {
+    display: block;
+    padding: var(--space-4);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .decider-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-link);
+  }
+
+  .decider-name {
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: var(--space-1);
+  }
+
+  .decider-role {
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
   }
 
   .tag-list {
@@ -134,8 +197,8 @@ const breadcrumbs = [
 
   .sidebar-section h3 {
     margin-top: 0;
-    margin-bottom: 1rem;
-    font-size: 1rem;
+    margin-bottom: var(--space-4);
+    font-size: var(--text-base);
   }
 
   dl {
@@ -144,12 +207,16 @@ const breadcrumbs = [
 
   dt {
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: var(--text-sm);
     color: var(--color-text-muted);
-    margin-top: 0.75rem;
+    margin-top: var(--space-3);
+  }
+
+  dt:first-child {
+    margin-top: 0;
   }
 
   dd {
-    margin: 0.25rem 0 0 0;
+    margin: var(--space-1) 0 0 0;
   }
 </style>

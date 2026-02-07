@@ -15,7 +15,7 @@ if (!phaseConfig) {
 }
 
 const frameworks = await getCollection('frameworks');
-const frameworkPage = frameworks.find((f) => f.id === phase);
+const frameworkPage = frameworks.find((f) => f.id.replace(/\.md$/, '') === phase);
 
 if (!frameworkPage) {
   return Astro.redirect('/404');
@@ -58,7 +58,7 @@ const breadcrumbs = [
         {phaseTerms.map((term) => (
           <TermCard
             name={term.data.name}
-            slug={term.id}
+            slug={term.id.replace(/\.md$/, '')}
             phase={term.data.custdev_phase}
             status={term.data.status}
             aliases={term.data.aliases}

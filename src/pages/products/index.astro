@@ -36,10 +36,10 @@ const filters: FilterDef[] = [
     emptyMessage="No products configured yet."
   >
     {products.map((product) => (
-      <div data-cv-id={product.id}>
+      <div data-cv-id={product.id.replace(/\.md$/, '')}>
         <ProductCard
           name={product.data.name}
-          slug={product.id}
+          slug={product.id.replace(/\.md$/, '')}
           phase={product.data.custdev_phase}
           status={product.data.status}
           description={product.data.description}

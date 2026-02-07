@@ -44,7 +44,7 @@ const serializedItems = items.map((item) => {
       values[filter.key] = normalizeValue(getValue(item, filter.key));
     }
   });
-  return { id: item.id, values };
+  return { id: item.id.replace(/\.md$/, ''), values };
 });
 
 const serialized = {
@@ -172,7 +172,7 @@ const serialized = {
               }
 
               if (column.primary && !isEmpty) {
-                content = <a href={`${basePath}/${item.id}`}>{content}</a>;
+                content = <a href={`${basePath}/${item.id.replace(/\.md$/, '')}`}>{content}</a>;
               }
 
               return (

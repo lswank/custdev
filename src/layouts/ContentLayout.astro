@@ -27,22 +27,59 @@ const { title, description, breadcrumbs = [] } = Astro.props;
   .content-layout {
     display: grid;
     grid-template-columns: 1fr var(--sidebar-width);
-    gap: 2rem;
+    gap: var(--space-8);
     align-items: start;
   }
 
   .content-main {
     min-width: 0;
+    max-width: 70ch;
+  }
+
+  .content-main :global(article) {
+    line-height: 1.7;
+  }
+
+  .content-main :global(article h2) {
+    margin-top: var(--space-8);
+    margin-bottom: var(--space-4);
+    font-size: var(--text-xl);
+  }
+
+  .content-main :global(article h3) {
+    margin-top: var(--space-6);
+    margin-bottom: var(--space-3);
+    font-size: var(--text-lg);
+  }
+
+  .content-main :global(article p) {
+    margin-bottom: var(--space-4);
   }
 
   .content-sidebar {
     position: sticky;
-    top: calc(var(--nav-height) + 1rem);
+    top: calc(var(--nav-height) + var(--space-4));
+  }
+
+  .content-sidebar :global(.sidebar-section) {
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    padding: var(--space-4);
+    margin-bottom: var(--space-4);
+  }
+
+  .content-sidebar :global(.sidebar-section:last-child) {
+    margin-bottom: 0;
   }
 
   @media (max-width: 768px) {
     .content-layout {
       grid-template-columns: 1fr;
+    }
+
+    .content-main {
+      max-width: none;
     }
 
     .content-sidebar {

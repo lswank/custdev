@@ -8,7 +8,7 @@ import { getCollection } from 'astro:content';
 const people = await getCollection('people');
 const sorted = people.sort((a, b) => a.data.name.localeCompare(b.data.name));
 const entities = await getCollection('entities');
-const entityNameBySlug = new Map(entities.map((entity) => [entity.id, entity.data.name]));
+const entityNameBySlug = new Map(entities.map((entity) => [entity.id.replace(/\.md$/, ''), entity.data.name]));
 const viewItems = sorted.map((person) => ({
   ...person,
   data: {
@@ -54,10 +54,10 @@ const filters: FilterDef[] = [
     emptyMessage="No team members yet."
   >
     {viewItems.map((person) => (
-      <div data-cv-id={person.id}>
+      <div data-cv-id={person.id.replace(/\.md$/, '')}>
         <PersonCard
           name={person.data.name}
-          slug={person.id}
+          slug={person.id.replace(/\.md$/, '')}
           role={person.data.role}
           status={person.data.status}
           expertise={person.data.expertise}

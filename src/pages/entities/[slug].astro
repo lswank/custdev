@@ -6,7 +6,7 @@ import { getCollection } from 'astro:content';
 const { slug } = Astro.params;
 
 const entities = await getCollection('entities');
-const entity = entities.find((e) => e.id === slug);
+const entity = entities.find((e) => e.id.replace(/\.md$/, '') === slug);
 
 if (!entity) {
   return Astro.redirect('/404');
@@ -18,7 +18,7 @@ const people = await getCollection('people');
 const keyPeople = people.filter((person) => person.data.company === slug);
 
 const parent = entity.data.parent
-  ? entities.find((e) => e.id === entity.data.parent)
+  ? entities.find((e) => e.id.replace(/\.md$/, '') === entity.data.parent)
   : undefined;
 
 const childEntities = entities.filter((e) => e.data.parent === slug);
@@ -54,19 +54,39 @@ const breadcrumbs = [
     <Content />
   </article>
 
+  {keyPeople.length > 0 && (
+    <section class="key-people-section">
+      <h2>Team ({keyPeople.length})</h2>
+      <div class="people-grid">
+        {keyPeople.map((person) => (
+          <a href={`/people/${person.id.replace(/\.md$/, '')}`} class="person-card">
+            <div class="person-name">{person.data.name}</div>
+            <div class="person-role">{person.data.role}</div>
+            {person.data.title && (
+              <div class="person-title">{person.data.title}</div>
+            )}
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
+
   {childEntities.length > 0 && (
     <section class="child-entities">
-      <h2>Child Entities</h2>
-      <ul>
+      <h2>Child Entities ({childEntities.length})</h2>
+      <div class="entity-grid">
         {childEntities.map((child) => (
-          <li>
-            <a href={`/entities/${child.id}`}>{child.data.name}</a>
+          <a href={`/entities/${child.id.replace(/\.md$/, '')}`} class="entity-card">
+            <div class="entity-name">{child.data.name}</div>
             {child.data.relationship && (
-              <span class="child-meta">{child.data.relationship.replace(/-/g, ' ')}</span>
+              <div class="entity-meta">{child.data.relationship.replace(/-/g, ' ')}</div>
             )}
-          </li>
+            {child.data.entity_type && (
+              <div class="entity-type-label">{child.data.entity_type.replace(/-/g, ' ')}</div>
+            )}
+          </a>
         ))}
-      </ul>
+      </div>
     </section>
   )}
 
@@ -77,7 +97,7 @@ const breadcrumbs = [
         {parent && (
           <>
             <dt>Parent</dt>
-            <dd><a href={`/entities/${parent.id}`}>{parent.data.name}</a></dd>
+            <dd><a href={`/entities/${parent.id.replace(/\.md$/, '')}`}>{parent.data.name}</a></dd>
           </>
         )}
         {entity.data.founded && (
@@ -105,17 +125,35 @@ const breadcrumbs = [
       </dl>
     </div>
 
+    {(parent || childEntities.length > 0) && (
+      <div class="sidebar-section">
+        <h3>Structure</h3>
+        <dl>
+          {parent && (
+            <>
+              <dt>Parent Entity</dt>
+              <dd>
+                <a href={`/entities/${parent.id.replace(/\.md$/, '')}`}>{parent.data.name}</a>
+              </dd>
+            </>
+          )}
+          {childEntities.length > 0 && (
+            <>
+              <dt>Child Entities</dt>
+              <dd>{childEntities.length}</dd>
+            </>
+          )}
+        </dl>
+      </div>
+    )}
+
     {keyPeople.length > 0 && (
       <div class="sidebar-section">
-        <h3>Key People</h3>
-        <ul class="key-people">
-          {keyPeople.map((person) => (
-            <li>
-              <a href={`/people/${person.id}`}>{person.data.name}</a>
-              <span class="role">{person.data.role}</span>
-            </li>
-          ))}
-        </ul>
+        <h3>Team</h3>
+        <dl>
+          <dt>Total Employees</dt>
+          <dd>{keyPeople.length}</dd>
+        </dl>
       </div>
     )}
   </Fragment>
@@ -161,49 +199,69 @@ const breadcrumbs = [
     text-transform: capitalize;
   }
 
-  .child-entities ul {
-    list-style: none;
-    padding: 0;
-    margin: 0.5rem 0 0;
+  .key-people-section,
+  .child-entities {
+    margin: var(--space-8) 0;
   }
 
-  .child-entities li {
-    display: flex;
-    align-items: center;
-    gap: 0.5rem;
-    padding: 0.35rem 0;
-    border-bottom: 1px solid var(--color-border);
+  .people-grid,
+  .entity-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));
+    gap: var(--space-4);
+    margin-top: var(--space-4);
   }
 
-  .child-meta {
-    font-size: 0.75rem;
+  .person-card,
+  .entity-card {
+    display: block;
+    padding: var(--space-4);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    transition: all 0.2s ease;
+  }
+
+  .person-card:hover,
+  .entity-card:hover {
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+    border-color: var(--color-link);
+  }
+
+  .person-name,
+  .entity-name {
+    font-weight: 600;
+    color: var(--color-text);
+    margin-bottom: var(--space-1);
+  }
+
+  .person-role,
+  .entity-meta {
+    font-size: var(--text-sm);
     color: var(--color-text-muted);
     text-transform: capitalize;
   }
 
+  .person-title {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    font-style: italic;
+    margin-top: var(--space-1);
+  }
+
+  .entity-type-label {
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    text-transform: capitalize;
+    margin-top: var(--space-1);
+  }
+
   .sidebar-section h3 {
     margin-top: 0;
-    margin-bottom: 1rem;
-    font-size: 1rem;
-  }
-
-  .key-people {
-    list-style: none;
-    padding: 0;
-    margin: 0;
-  }
-
-  .key-people li {
-    display: flex;
-    flex-direction: column;
-    gap: 0.15rem;
-    padding: 0.5rem 0;
-    border-bottom: 1px solid var(--color-border);
-  }
-
-  .key-people .role {
-    font-size: 0.8rem;
-    color: var(--color-text-muted);
+    margin-bottom: var(--space-4);
+    font-size: var(--text-base);
   }
 
   dl {
@@ -212,12 +270,16 @@ const breadcrumbs = [
 
   dt {
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: var(--text-sm);
     color: var(--color-text-muted);
-    margin-top: 0.75rem;
+    margin-top: var(--space-3);
+  }
+
+  dt:first-child {
+    margin-top: 0;
   }
 
   dd {
-    margin: 0.25rem 0 0 0;
+    margin: var(--space-1) 0 0 0;
   }
 </style>

@@ -22,7 +22,7 @@ const hasContent = terms.length > 0 || methods.length > 0;
         <ul class="related-list">
           {terms.map((term) => (
             <li>
-              <a href={`/terms/${term.id}`}>{term.data.name}</a>
+              <a href={`/terms/${term.id.replace(/\.md$/, '')}`}>{term.data.name}</a>
             </li>
           ))}
         </ul>

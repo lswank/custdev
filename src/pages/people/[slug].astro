@@ -6,7 +6,7 @@ import { getCollection } from 'astro:content';
 const { slug } = Astro.params;
 
 const people = await getCollection('people');
-const person = people.find((p) => p.id === slug);
+const person = people.find((p) => p.id.replace(/\.md$/, '') === slug);
 
 if (!person) {
   return Astro.redirect('/404');
@@ -14,13 +14,31 @@ if (!person) {
 
 const entities = await getCollection('entities');
 const companyEntity = person.data.company
-  ? entities.find((entity) => entity.id === person.data.company)
+  ? entities.find((entity) => entity.id.replace(/\.md$/, '') === person.data.company)
   : undefined;
 const reportsTo = person.data.reports_to
-  ? people.find((p) => p.id === person.data.reports_to)
+  ? people.find((p) => p.id.replace(/\.md$/, '') === person.data.reports_to)
   : undefined;
 
+// Get owned terms
+const terms = await getCollection('terms');
+const ownedTerms = terms.filter((t) => t.data.owner === person.data.name || t.data.owner === slug);
+
+// Get contributed repos
+const repositories = await getCollection('repositories');
+const contributedRepos = repositories.filter((r) =>
+  r.data.contributors.some((c) => c === person.data.name || c === person.data.github || c === slug)
+);
+
 const { Content } = await person.render();
+
+// Create initials for avatar
+const initials = person.data.name
+  .split(' ')
+  .map((part) => part[0])
+  .join('')
+  .toUpperCase()
+  .slice(0, 2);
 
 const formatRange = (start?: Date, end?: Date) => {
   if (start && end) return `${start.toLocaleDateString()} — ${end.toLocaleDateString()}`;
@@ -47,42 +65,59 @@ const breadcrumbs = [
   breadcrumbs={breadcrumbs}
 >
   <div class="person-header">
-    <h1>{person.data.name}</h1>
-    <div class="meta">
-      <StatusBadge status={person.data.status} />
-      <span class="role">{person.data.role}</span>
+    <div class="profile-card">
+      <div class="profile-avatar">{initials}</div>
+      <div class="profile-info">
+        <h1>{person.data.name}</h1>
+        <div class="meta">
+          <StatusBadge status={person.data.status} />
+          <span class="role">{person.data.role}</span>
+        </div>
+        {person.data.title && (
+          <p class="person-title">{person.data.title}</p>
+        )}
+        {companyEntity && (
+          <p class="company-link">
+            <a href={`/entities/${companyEntity.id.replace(/\.md$/, '')}`}>{companyEntity.data.name}</a>
+          </p>
+        )}
+      </div>
     </div>
-    {person.data.title && (
-      <p class="person-title">{person.data.title}</p>
-    )}
   </div>
 
   {person.data.expertise.length > 0 && (
     <section class="expertise-section">
       <h2>Expertise</h2>
-      <ul class="tag-list">
+      <div class="expertise-cloud">
         {person.data.expertise.map((skill) => (
-          <li class="tag-pill">{skill}</li>
+          <span class="expertise-pill">{skill}</span>
+        ))}
+      </div>
+    </section>
+  )}
+
+  {ownedTerms.length > 0 && (
+    <section class="owned-terms-section">
+      <h2>Owned Terms ({ownedTerms.length})</h2>
+      <ul class="linked-list">
+        {ownedTerms.map((term) => (
+          <li>
+            <a href={`/terms/${term.id.replace(/\.md$/, '')}`}>{term.data.name}</a>
+          </li>
         ))}
       </ul>
     </section>
   )}
 
-  {person.data.github && (
-    <section class="github-section">
-      <h2>GitHub</h2>
-      <a href={`https://github.com/${person.data.github}`} target="_blank" rel="noopener noreferrer">
-        @{person.data.github}
-      </a>
-    </section>
-  )}
-
-  {person.data.repos.length > 0 && (
+  {contributedRepos.length > 0 && (
     <section class="repos-section">
-      <h2>Repositories</h2>
-      <ul class="repo-list">
-        {person.data.repos.map((repo) => (
-          <li>{repo}</li>
+      <h2>Contributed Repositories ({contributedRepos.length})</h2>
+      <ul class="linked-list">
+        {contributedRepos.map((repo) => (
+          <li>
+            <a href={`/repositories/${repo.id.replace(/\.md$/, '')}`}>{repo.data.name}</a>
+            <span class="repo-lang">{repo.data.language}</span>
+          </li>
         ))}
       </ul>
     </section>
@@ -210,18 +245,6 @@ const breadcrumbs = [
             <dd>{person.data.timezone}</dd>
           </>
         )}
-        {person.data.disc_profile && (
-          <>
-            <dt>DiSC Profile</dt>
-            <dd>{person.data.disc_profile}</dd>
-          </>
-        )}
-        {person.data.mbti && (
-          <>
-            <dt>MBTI</dt>
-            <dd>{person.data.mbti}</dd>
-          </>
-        )}
         {person.data.github && (
           <>
             <dt>GitHub</dt>
@@ -234,70 +257,144 @@ const breadcrumbs = [
         )}
       </dl>
     </div>
+
+    {(person.data.disc_profile || person.data.mbti) && (
+      <div class="sidebar-section personality-section">
+        <h3>Personality</h3>
+        <dl>
+          {person.data.disc_profile && (
+            <>
+              <dt>DiSC</dt>
+              <dd>{person.data.disc_profile}</dd>
+            </>
+          )}
+          {person.data.mbti && (
+            <>
+              <dt>MBTI</dt>
+              <dd>{person.data.mbti}</dd>
+            </>
+          )}
+        </dl>
+      </div>
+    )}
   </Fragment>
 </ContentLayout>
 
 <style>
   .person-header {
-    margin-bottom: 2rem;
-    padding-bottom: 1rem;
-    border-bottom: 1px solid var(--color-border);
+    margin-bottom: var(--space-8);
   }
 
-  .person-header h1 {
-    margin: 0 0 0.5rem;
+  .profile-card {
+    display: flex;
+    gap: var(--space-6);
+    align-items: start;
+    padding: var(--space-6);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    box-shadow: var(--shadow-sm);
+  }
+
+  .profile-avatar {
+    width: 80px;
+    height: 80px;
+    border-radius: var(--radius-full);
+    background: linear-gradient(135deg, var(--color-discovery), var(--color-validation));
+    color: white;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: var(--text-2xl);
+    font-weight: 700;
+    flex-shrink: 0;
+  }
+
+  .profile-info {
+    flex: 1;
+  }
+
+  .profile-info h1 {
+    margin: 0 0 var(--space-2);
+    font-size: var(--text-2xl);
   }
 
   .meta {
     display: flex;
-    gap: 0.5rem;
+    gap: var(--space-2);
     align-items: center;
-    margin-bottom: 0.5rem;
+    margin-bottom: var(--space-2);
   }
 
   .role {
     color: var(--color-text-muted);
-    font-size: 0.9rem;
+    font-size: var(--text-sm);
   }
 
   .person-title {
     color: var(--color-text-muted);
     font-style: italic;
     margin: 0;
+    font-size: var(--text-sm);
+  }
+
+  .company-link {
+    margin: var(--space-2) 0 0;
+    font-size: var(--text-sm);
   }
 
   .expertise-section,
-  .github-section,
+  .owned-terms-section,
   .repos-section,
   .history-section {
-    margin: 1.5rem 0;
+    margin: var(--space-8) 0;
   }
 
-  .tag-list {
-    list-style: none;
-    margin: 0;
-    padding: 0;
+  .expertise-cloud {
     display: flex;
     flex-wrap: wrap;
-    gap: 0.4rem;
+    gap: var(--space-3);
+    padding: var(--space-4);
+    background: var(--color-bg-secondary);
+    border-radius: var(--radius-md);
+    border: 1px solid var(--color-border);
   }
 
-  .tag-pill {
-    font-size: 0.8rem;
-    padding: 0.3em 0.7em;
+  .expertise-pill {
+    font-size: var(--text-sm);
+    padding: 0.4em 0.9em;
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    color: var(--color-text);
+    font-weight: 500;
+  }
+
+  .linked-list {
+    list-style: none;
+    margin: var(--space-3) 0 0;
+    padding: 0;
+    display: grid;
+    gap: var(--space-2);
+  }
+
+  .linked-list li {
+    display: flex;
+    align-items: center;
+    gap: var(--space-2);
+    padding: var(--space-3);
     background: var(--color-bg-secondary);
     border: 1px solid var(--color-border);
-    border-radius: 4px;
+    border-radius: var(--radius-sm);
+  }
+
+  .repo-lang {
+    margin-left: auto;
+    font-size: var(--text-xs);
     color: var(--color-text-muted);
-  }
-
-  .repo-list {
-    margin: 0.5rem 0 0 1.25rem;
-    padding: 0;
-  }
-
-  .repo-list li {
-    margin-bottom: 0.25rem;
+    padding: 0.2em 0.5em;
+    background: var(--color-bg);
+    border-radius: var(--radius-sm);
   }
 
   .history-list {
@@ -340,8 +437,13 @@ const breadcrumbs = [
 
   .sidebar-section h3 {
     margin-top: 0;
-    margin-bottom: 1rem;
-    font-size: 1rem;
+    margin-bottom: var(--space-4);
+    font-size: var(--text-base);
+  }
+
+  .personality-section {
+    opacity: 0.7;
+    font-size: var(--text-sm);
   }
 
   dl {
@@ -350,12 +452,16 @@ const breadcrumbs = [
 
   dt {
     font-weight: 600;
-    font-size: 0.85rem;
+    font-size: var(--text-sm);
     color: var(--color-text-muted);
-    margin-top: 0.75rem;
+    margin-top: var(--space-3);
+  }
+
+  dt:first-child {
+    margin-top: 0;
   }
 
   dd {
-    margin: 0.25rem 0 0 0;
+    margin: var(--space-1) 0 0 0;
   }
 </style>
