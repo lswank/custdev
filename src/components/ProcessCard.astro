@@ -10,10 +10,25 @@ interface Props {
 }
 
 const { title, slug, category, status, owner } = Astro.props;
+
+// Category icons
+const categoryIcons: Record<string, string> = {
+  deployment: '<path d="M12 2L2 7l10 5 10-5-10-5zM2 17l10 5 10-5M2 12l10 5 10-5" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+  onboarding: '<path d="M16 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" fill="none" stroke="currentColor" stroke-width="2"/><circle cx="8.5" cy="7" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M20 8v6M23 11h-6" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  review: '<circle cx="12" cy="12" r="10" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 16v-4M12 8h.01" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+  incident: '<path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0zM12 9v4M12 17h.01" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>',
+  operations: '<circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 01-2.83 2.83l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" fill="none" stroke="currentColor" stroke-width="2"/>',
+};
+const icon = categoryIcons[category] || categoryIcons.operations;
 ---
 
 <a href={`/processes/${slug}`} class="process-card">
-  <h3 class="process-title">{title}</h3>
+  <div class="process-header">
+    <div class="process-icon" aria-hidden="true">
+      <svg width="18" height="18" viewBox="0 0 24 24" set:html={icon} />
+    </div>
+    <h3 class="process-title">{title}</h3>
+  </div>
   <div class="process-meta">
     <StatusBadge status={category} />
     <StatusBadge status={status} />
@@ -28,9 +43,9 @@ const { title, slug, category, status, owner } = Astro.props;
 <style>
   .process-card {
     display: block;
-    padding: 1.25rem;
+    padding: var(--space-4);
     border: 1px solid var(--color-border);
-    border-radius: 6px;
+    border-radius: var(--radius-md);
     background: var(--color-bg);
     text-decoration: none;
     color: var(--color-text);
@@ -40,12 +55,25 @@ const { title, slug, category, status, owner } = Astro.props;
   .process-card:hover {
     text-decoration: none;
     border-color: var(--color-link);
-    box-shadow: 0 2px 8px var(--color-shadow, rgba(0, 0, 0, 0.08));
+    box-shadow: var(--shadow-md);
+  }
+
+  .process-header {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-3);
+    margin-bottom: var(--space-2);
+  }
+
+  .process-icon {
+    flex-shrink: 0;
+    color: var(--color-link);
+    margin-top: 2px;
   }
 
   .process-title {
-    margin: 0 0 0.5rem 0;
-    font-size: 1.1rem;
+    margin: 0;
+    font-size: var(--text-base, 1rem);
     line-height: 1.3;
     color: var(--color-text);
   }
@@ -53,13 +81,13 @@ const { title, slug, category, status, owner } = Astro.props;
   .process-meta {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
+    gap: var(--space-2);
     flex-wrap: wrap;
   }
 
   .process-owner {
-    margin: 0.5rem 0 0;
-    font-size: 0.8rem;
+    margin: var(--space-2) 0 0;
+    font-size: var(--text-xs, 0.8rem);
     color: var(--color-text-muted);
   }
 

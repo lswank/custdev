@@ -56,24 +56,27 @@ const serialized = {
 
 <div class="collection-view" style={`--cv-card-min: ${cardMin}px;`}>
   <div class="cv-toolbar">
-    <div class="cv-view-toggle" role="group" aria-label="View options">
-      <button class="cv-view-btn" data-view="cards" type="button" aria-pressed="true">
-        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-          <rect x="3" y="3" width="7" height="7" rx="1.2" fill="currentColor" />
-          <rect x="14" y="3" width="7" height="7" rx="1.2" fill="currentColor" />
-          <rect x="3" y="14" width="7" height="7" rx="1.2" fill="currentColor" />
-          <rect x="14" y="14" width="7" height="7" rx="1.2" fill="currentColor" />
-        </svg>
-        Cards
-      </button>
-      <button class="cv-view-btn" data-view="list" type="button" aria-pressed="false">
-        <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
-          <rect x="3" y="4" width="18" height="3" rx="1.5" fill="currentColor" />
-          <rect x="3" y="10.5" width="18" height="3" rx="1.5" fill="currentColor" />
-          <rect x="3" y="17" width="18" height="3" rx="1.5" fill="currentColor" />
-        </svg>
-        List
-      </button>
+    <div class="cv-toolbar-left">
+      <div class="cv-view-toggle" role="group" aria-label="View options">
+        <button class="cv-view-btn" data-view="cards" type="button" aria-pressed="true">
+          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="3" y="3" width="7" height="7" rx="1.2" fill="currentColor" />
+            <rect x="14" y="3" width="7" height="7" rx="1.2" fill="currentColor" />
+            <rect x="3" y="14" width="7" height="7" rx="1.2" fill="currentColor" />
+            <rect x="14" y="14" width="7" height="7" rx="1.2" fill="currentColor" />
+          </svg>
+          Cards
+        </button>
+        <button class="cv-view-btn" data-view="list" type="button" aria-pressed="false">
+          <svg width="16" height="16" viewBox="0 0 24 24" aria-hidden="true">
+            <rect x="3" y="4" width="18" height="3" rx="1.5" fill="currentColor" />
+            <rect x="3" y="10.5" width="18" height="3" rx="1.5" fill="currentColor" />
+            <rect x="3" y="17" width="18" height="3" rx="1.5" fill="currentColor" />
+          </svg>
+          List
+        </button>
+      </div>
+      <input type="search" class="cv-search" placeholder="Filter..." aria-label="Filter items" data-cv-search />
     </div>
     <div class="cv-count">
       <span data-cv-count>{items.length}</span> items
@@ -260,6 +263,14 @@ const serialized = {
 
     const normalize = (value) => String(value).toLowerCase();
 
+    // Text search
+    const searchInput = root.querySelector('[data-cv-search]');
+    let searchQuery = '';
+    searchInput?.addEventListener('input', () => {
+      searchQuery = searchInput.value.trim().toLowerCase();
+      applyFilters();
+    });
+
     const activeFilters = new Map();
     const filterGroups = root.querySelectorAll('[data-filter-key]');
 
@@ -278,6 +289,13 @@ const serialized = {
       let visibleCount = 0;
       items.forEach((item) => {
         let matches = true;
+
+        // Text search
+        if (searchQuery) {
+          const text = Object.values(item.values || {}).join(' ').toLowerCase();
+          if (!text.includes(searchQuery)) matches = false;
+        }
+
         activeFilters.forEach((values, key) => {
           if (!matches) return;
           if (values.size === 0) return;

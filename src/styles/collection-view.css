@@ -11,6 +11,33 @@
   margin-bottom: 1rem;
 }
 
+.cv-toolbar-left {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+}
+
+.cv-search {
+  padding: 0.4rem 0.75rem;
+  border: 1px solid var(--color-border);
+  border-radius: var(--radius-full, 9999px);
+  background: var(--color-bg-secondary);
+  color: var(--color-text);
+  font-size: 0.85rem;
+  outline: none;
+  width: 180px;
+  transition: border-color 0.15s, box-shadow 0.15s;
+}
+
+.cv-search::placeholder {
+  color: var(--color-text-muted);
+}
+
+.cv-search:focus {
+  border-color: var(--color-link);
+  box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-link) 15%, transparent);
+}
+
 .cv-view-toggle {
   display: inline-flex;
   border: 1px solid var(--color-border);

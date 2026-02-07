@@ -7,6 +7,8 @@ import { getSiteConfig } from '../lib/config.js';
 const config = getSiteConfig();
 const terms = await getCollection('terms');
 const products = await getCollection('products');
+const definitions = await getCollection('definitions');
+const people = await getCollection('people');
 const phases = config.custdev.phases;
 
 // Count terms per phase
@@ -14,226 +16,332 @@ const phaseCounts = phases.map((phase) => ({
   ...phase,
   count: terms.filter((t) => t.data.custdev_phase === phase.slug).length,
 }));
+
+// Phase descriptions
+const phaseDescriptions: Record<string, string> = {
+  discovery: 'Hypotheses about customers and problems',
+  validation: 'Testing assumptions with real evidence',
+  creation: 'Proven concepts ready for growth',
+  building: 'Canonical definitions in production',
+};
+
+// Phase SVG icons
+const phaseIcons: Record<string, string> = {
+  discovery: '<circle cx="12" cy="12" r="9" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8v4l3 3" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round"/>',
+  validation: '<path d="M9 12l2 2 4-4" stroke="currentColor" stroke-width="2" fill="none" stroke-linecap="round" stroke-linejoin="round"/><rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="2"/>',
+  creation: '<path d="M12 3v18M3 12h18M5.6 5.6l12.8 12.8M18.4 5.6L5.6 18.4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round"/>',
+  building: '<rect x="4" y="10" width="16" height="11" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><path d="M8 10V6a4 4 0 018 0v4" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>',
+};
+
+// Health stats
+const totalTerms = terms.length;
+const totalDefs = definitions.length;
+const activePeople = people.filter(p => p.data.status !== 'inactive').length;
+const coveragePercent = totalTerms > 0
+  ? Math.round((definitions.filter(d => d.data.product === 'global').length / totalTerms) * 100)
+  : 0;
+
+// Collection icons (Kare-inspired simple SVGs)
+const collections = [
+  { href: '/terms', label: 'Terms', desc: `${totalTerms} defined`, icon: '<path d="M4 6h16M4 12h16M4 18h10" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' },
+  { href: '/products', label: 'Products', desc: `${products.length} tracked`, icon: '<rect x="3" y="3" width="18" height="18" rx="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M3 9h18M9 3v18" stroke="currentColor" stroke-width="2"/>' },
+  { href: '/people', label: 'Team', desc: `${activePeople} active`, icon: '<circle cx="12" cy="8" r="4" fill="none" stroke="currentColor" stroke-width="2"/><path d="M4 20c0-4 3.6-7 8-7s8 3 8 7" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' },
+  { href: '/entities', label: 'Entities', desc: 'Corporate structure', icon: '<rect x="8" y="2" width="8" height="6" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="2" y="16" width="8" height="6" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><rect x="14" y="16" width="8" height="6" rx="1" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 8v4M6 16v-4h12v4" stroke="currentColor" stroke-width="2"/>' },
+  { href: '/repositories', label: 'Repositories', desc: 'Codebase docs', icon: '<path d="M9 19c-5 1.5-5-2.5-7-3m14 6v-3.87a3.37 3.37 0 00-.94-2.61c3.14-.35 6.44-1.54 6.44-7A5.44 5.44 0 0020 4.77 5.07 5.07 0 0019.91 1S18.73.65 16 2.48a13.38 13.38 0 00-7 0C6.27.65 5.09 1 5.09 1A5.07 5.07 0 005 4.77a5.44 5.44 0 00-1.5 3.78c0 5.42 3.3 6.61 6.44 7A3.37 3.37 0 009 18.13V22" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' },
+  { href: '/adrs', label: 'ADRs', desc: 'Architecture decisions', icon: '<path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" fill="none" stroke="currentColor" stroke-width="2"/><path d="M14 2v6h6M16 13H8M16 17H8M10 9H8" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' },
+  { href: '/resources', label: 'Resources', desc: 'Tools & services', icon: '<circle cx="12" cy="12" r="3" fill="none" stroke="currentColor" stroke-width="2"/><path d="M12 1v2M12 21v2M4.22 4.22l1.42 1.42M18.36 18.36l1.42 1.42M1 12h2M21 12h2M4.22 19.78l1.42-1.42M18.36 5.64l1.42-1.42" stroke="currentColor" stroke-width="2" stroke-linecap="round"/>' },
+  { href: '/processes', label: 'Processes', desc: 'Workflows & procedures', icon: '<polyline points="22 12 18 12 15 21 9 3 6 12 2 12" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"/>' },
+];
+
+// Recent terms (sorted by created date descending)
+const recentTerms = [...terms]
+  .sort((a, b) => {
+    const aDate = a.data.created ? new Date(a.data.created).getTime() : 0;
+    const bDate = b.data.created ? new Date(b.data.created).getTime() : 0;
+    return bDate - aDate;
+  })
+  .slice(0, 5);
 ---
 
 <BaseLayout title={`${config.wiki.title} — ${config.company.name}`}>
-  <div class="hero">
-    <h1>{config.wiki.title}</h1>
-    <p class="tagline">{config.company.tagline}</p>
-  </div>
+  <!-- Health Dashboard -->
+  <section class="health-dashboard">
+    <div class="health-stats">
+      <div class="stat">
+        <span class="stat-value">{totalTerms}</span>
+        <span class="stat-label">Terms</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value">{totalDefs}</span>
+        <span class="stat-label">Definitions</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value">{coveragePercent}%</span>
+        <span class="stat-label">Coverage</span>
+      </div>
+      <div class="stat">
+        <span class="stat-value">{activePeople}</span>
+        <span class="stat-label">Team</span>
+      </div>
+    </div>
+  </section>
 
+  <!-- Phase Cards -->
   <section class="phases">
     <h2>Customer Development Phases</h2>
     <div class="phase-grid">
       {phaseCounts.map((phase) => (
         <a href={`/framework/${phase.slug}`} class="phase-card" style={`--phase-color: ${phase.color}`}>
+          <div class="phase-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" set:html={phaseIcons[phase.slug] || ''} />
+          </div>
           <h3>{phase.label}</h3>
-          <p class="count">{phase.count} term{phase.count !== 1 ? 's' : ''}</p>
+          <p class="phase-desc">{phaseDescriptions[phase.slug] || ''}</p>
+          <span class="phase-count">{phase.count} term{phase.count !== 1 ? 's' : ''}</span>
         </a>
       ))}
     </div>
   </section>
 
-  <section class="quick-links">
-    <div class="link-section">
-      <h2>Recent Terms</h2>
-      <ul>
-        {terms.slice(0, 5).map((term) => (
-          <li>
-            <a href={`/terms/${term.id}`}>{term.data.name}</a>
-            <PhaseIndicator phase={term.data.custdev_phase} size="small" />
-          </li>
-        ))}
-      </ul>
-      <a href="/terms" class="view-all">View all terms &rarr;</a>
-    </div>
-
-    <div class="link-section">
-      <h2>Products</h2>
-      <ul>
-        {products.map((product) => (
-          <li>
-            <a href={`/products/${product.id}`}>{product.data.name}</a>
-            <span class="status">{product.data.status}</span>
-          </li>
-        ))}
-      </ul>
-      <a href="/products" class="view-all">View all products &rarr;</a>
+  <!-- Unified Collection Grid -->
+  <section class="collections">
+    <h2>Collections</h2>
+    <div class="collection-grid">
+      {collections.map((col) => (
+        <a href={col.href} class="collection-card">
+          <div class="collection-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" aria-hidden="true" set:html={col.icon} />
+          </div>
+          <div class="collection-info">
+            <h3>{col.label}</h3>
+            <p>{col.desc}</p>
+          </div>
+        </a>
+      ))}
     </div>
   </section>
 
-  <section class="engineering-section">
-    <h2>Engineering</h2>
-    <div class="eng-grid">
-      <a href="/people" class="eng-card">
-        <h3>Team</h3>
-        <p>Team profiles, skills, and roles</p>
-      </a>
-      <a href="/entities" class="eng-card">
-        <h3>Entities</h3>
-        <p>Subsidiaries, partners, and holding structure</p>
-      </a>
-      <a href="/repositories" class="eng-card">
-        <h3>Repositories</h3>
-        <p>Codebase documentation and ownership</p>
-      </a>
-      <a href="/adrs" class="eng-card">
-        <h3>ADRs</h3>
-        <p>Architecture Decision Records</p>
-      </a>
-      <a href="/resources" class="eng-card">
-        <h3>Resources</h3>
-        <p>Tools, services, and platforms</p>
-      </a>
-      <a href="/processes" class="eng-card">
-        <h3>Processes</h3>
-        <p>Documented procedures and workflows</p>
-      </a>
-    </div>
+  <!-- Recent Activity -->
+  <section class="recent-activity">
+    <h2>Recent Terms</h2>
+    <ul class="activity-list">
+      {recentTerms.map((term) => (
+        <li>
+          <a href={`/terms/${term.id}`}>{term.data.name}</a>
+          <div class="activity-meta">
+            <PhaseIndicator phase={term.data.custdev_phase} size="small" />
+            {term.data.created && (
+              <time class="activity-date">
+                {new Date(term.data.created).toLocaleDateString('en-US', { month: 'short', day: 'numeric' })}
+              </time>
+            )}
+          </div>
+        </li>
+      ))}
+    </ul>
+    <a href="/terms" class="view-all">View all terms &rarr;</a>
   </section>
 </BaseLayout>
 
 <style>
-  .hero {
-    text-align: center;
-    padding: 3rem 0;
+  /* Health Dashboard */
+  .health-dashboard {
+    padding: var(--space-8) 0 var(--space-6);
     border-bottom: 1px solid var(--color-border);
-    margin-bottom: 2rem;
+    margin-bottom: var(--space-8);
   }
 
-  .hero h1 {
-    margin: 0 0 0.5rem;
-    font-size: 2.5rem;
+  .health-stats {
+    display: flex;
+    justify-content: center;
+    gap: var(--space-12);
+    flex-wrap: wrap;
   }
 
-  .tagline {
+  .stat {
+    text-align: center;
+  }
+
+  .stat-value {
+    display: block;
+    font-size: var(--text-3xl);
+    font-weight: 700;
+    color: var(--color-text);
+    line-height: 1;
+  }
+
+  .stat-label {
+    display: block;
+    font-size: var(--text-sm);
     color: var(--color-text-muted);
-    font-size: 1.2rem;
-    margin: 0;
+    margin-top: var(--space-1);
   }
 
+  /* Phases */
   .phases h2 {
-    margin-bottom: 1rem;
+    margin-bottom: var(--space-4);
   }
 
   .phase-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-    gap: 1rem;
-    margin-bottom: 3rem;
+    gap: var(--space-4);
+    margin-bottom: var(--space-12);
   }
 
   .phase-card {
     display: block;
-    padding: 1.5rem;
+    padding: var(--space-6);
     border: 2px solid var(--phase-color);
-    border-radius: 8px;
+    border-radius: var(--radius-md);
     text-decoration: none;
     color: var(--color-text);
-    transition: background-color 0.2s;
+    transition: background-color 0.15s, box-shadow 0.15s;
   }
 
   .phase-card:hover {
-    background-color: color-mix(in srgb, var(--phase-color) 8%, transparent);
+    background-color: color-mix(in srgb, var(--phase-color) 6%, transparent);
+    box-shadow: var(--shadow-md);
     text-decoration: none;
   }
 
+  .phase-icon {
+    color: var(--phase-color);
+    margin-bottom: var(--space-3);
+  }
+
   .phase-card h3 {
-    margin: 0 0 0.5rem;
+    margin: 0 0 var(--space-2);
+    font-size: var(--text-base);
     color: var(--phase-color);
   }
 
-  .phase-card .count {
+  .phase-desc {
+    margin: 0 0 var(--space-3);
+    font-size: var(--text-sm);
+    color: var(--color-text-muted);
+    line-height: 1.4;
+  }
+
+  .phase-count {
+    font-size: var(--text-xs);
+    font-weight: 600;
+    color: var(--phase-color);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  /* Collections Grid */
+  .collections h2 {
+    margin-bottom: var(--space-4);
+  }
+
+  .collection-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--space-4);
+    margin-bottom: var(--space-12);
+  }
+
+  .collection-card {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--space-4);
+    padding: var(--space-4);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    text-decoration: none;
+    color: var(--color-text);
+    transition: border-color 0.15s, box-shadow 0.15s;
+  }
+
+  .collection-card:hover {
+    border-color: var(--color-link);
+    box-shadow: var(--shadow-sm);
+    text-decoration: none;
+  }
+
+  .collection-icon {
+    flex-shrink: 0;
+    width: 40px;
+    height: 40px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: var(--radius-md);
+    background: var(--color-bg-secondary);
+    color: var(--color-link);
+  }
+
+  .collection-info h3 {
     margin: 0;
+    font-size: var(--text-base);
+    color: var(--color-text);
+  }
+
+  .collection-info p {
+    margin: var(--space-1) 0 0;
+    font-size: var(--text-sm);
     color: var(--color-text-muted);
   }
 
-  .quick-links {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: 2rem;
+  /* Recent Activity */
+  .recent-activity h2 {
+    margin-bottom: var(--space-4);
   }
 
-  .link-section ul {
+  .activity-list {
     list-style: none;
     padding: 0;
+    margin: 0;
   }
 
-  .link-section li {
+  .activity-list li {
     display: flex;
     align-items: center;
-    gap: 0.5rem;
-    padding: 0.5rem 0;
+    justify-content: space-between;
+    gap: var(--space-4);
+    padding: var(--space-3) 0;
     border-bottom: 1px solid var(--color-border);
   }
 
-  .link-section .status {
-    font-size: 0.8rem;
+  .activity-meta {
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    flex-shrink: 0;
+  }
+
+  .activity-date {
+    font-size: var(--text-xs);
     color: var(--color-text-muted);
-    text-transform: capitalize;
   }
 
   .view-all {
     display: inline-block;
-    margin-top: 1rem;
+    margin-top: var(--space-4);
     font-weight: 600;
-  }
-
-  /* Engineering section */
-  .engineering-section {
-    margin-top: 3rem;
-  }
-
-  .eng-grid {
-    display: grid;
-    grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-    gap: 1rem;
-  }
-
-  .eng-card {
-    display: block;
-    padding: 1.25rem;
-    border: 1px solid var(--color-border);
-    border-radius: 6px;
-    text-decoration: none;
-    color: var(--color-text);
-    transition: border-color 0.15s;
-  }
-
-  .eng-card:hover {
-    border-color: var(--color-link);
-    text-decoration: none;
-  }
-
-  .eng-card h3 {
-    margin: 0 0 0.5rem;
-    font-size: 1rem;
-    color: var(--color-link);
-  }
-
-  .eng-card p {
-    margin: 0;
-    font-size: 0.85rem;
-    color: var(--color-text-muted);
+    font-size: var(--text-sm);
   }
 
   @media (max-width: 768px) {
-    .quick-links {
-      grid-template-columns: 1fr;
+    .health-stats {
+      gap: var(--space-6);
     }
   }
 
   @media (max-width: 480px) {
-    .hero h1 {
-      font-size: 2rem;
-    }
-
-    .phase-grid {
+    .phase-grid,
+    .collection-grid {
       grid-template-columns: 1fr;
     }
 
-    .eng-grid {
-      grid-template-columns: 1fr;
+    .health-stats {
+      gap: var(--space-4);
+    }
+
+    .stat-value {
+      font-size: var(--text-2xl);
     }
   }
 </style>
