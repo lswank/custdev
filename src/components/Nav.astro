@@ -25,6 +25,7 @@ const brandName = config.company.name === 'Your Company'
         <circle cx="11" cy="11" r="8" /><path d="m21 21-4.35-4.35" />
       </svg>
       <input type="search" class="nav-search-input" placeholder="Search..." aria-label="Search wiki" />
+      <kbd class="nav-search-kbd" aria-hidden="true"><span class="nav-search-kbd-mod"></span>K</kbd>
     </div>
 
     <button class="hamburger" aria-label="Toggle menu" aria-expanded="false">
@@ -135,6 +136,23 @@ const brandName = config.company.name === 'Your Company'
       window.location.href = `/search?q=${encodeURIComponent(searchInput.value.trim())}`;
     }
   });
+
+  // Set keyboard shortcut modifier symbol based on platform
+  const kbdMod = document.querySelector('.nav-search-kbd-mod');
+  if (kbdMod) {
+    const isMac = navigator.platform.toUpperCase().indexOf('MAC') >= 0 ||
+                  (navigator as any).userAgentData?.platform === 'macOS';
+    kbdMod.textContent = isMac ? '\u2318' : 'Ctrl+';
+  }
+
+  // Hide kbd hint when search is focused, show on blur
+  const kbdHint = document.querySelector('.nav-search-kbd') as HTMLElement | null;
+  searchInput?.addEventListener('focus', () => {
+    if (kbdHint) kbdHint.style.display = 'none';
+  });
+  searchInput?.addEventListener('blur', () => {
+    if (kbdHint && searchInput.value === '') kbdHint.style.display = '';
+  });
 </script>
 
 <style>
@@ -204,6 +222,26 @@ const brandName = config.company.name === 'Your Company'
   .nav-search-input:focus {
     border-color: var(--color-link);
     box-shadow: 0 0 0 3px color-mix(in srgb, var(--color-link) 15%, transparent);
+  }
+
+  .nav-search-kbd {
+    position: absolute;
+    right: var(--space-2);
+    top: 50%;
+    transform: translateY(-50%);
+    display: inline-flex;
+    align-items: center;
+    gap: 1px;
+    font-family: inherit;
+    font-size: var(--text-xs);
+    color: var(--color-text-muted);
+    background: var(--color-bg);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    padding: 1px var(--space-1);
+    line-height: 1.4;
+    pointer-events: none;
+    user-select: none;
   }
 
   .nav-links {
@@ -345,6 +383,10 @@ const brandName = config.company.name === 'Your Company'
     }
 
     .nav-search {
+      display: none;
+    }
+
+    .nav-search-kbd {
       display: none;
     }
 

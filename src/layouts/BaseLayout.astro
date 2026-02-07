@@ -35,6 +35,23 @@ const user = Astro.locals.user;
       <slot />
     </main>
     <Footer />
+    <script is:inline>
+      (function () {
+        document.addEventListener('keydown', function (e) {
+          if ((e.metaKey || e.ctrlKey) && e.key === 'k') {
+            e.preventDefault();
+            var searchInput = document.querySelector('.nav-search-input');
+            var navSearch = document.querySelector('.nav-search');
+            if (navSearch && window.getComputedStyle(navSearch).display === 'none') {
+              window.location.href = '/search';
+            } else if (searchInput) {
+              searchInput.focus();
+              searchInput.select();
+            }
+          }
+        });
+      })();
+    </script>
   </body>
 </html>
 

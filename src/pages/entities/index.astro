@@ -49,6 +49,7 @@ const filters: FilterDef[] = [
     filters={filters}
     basePath="/entities"
     emptyMessage="No entities yet."
+    itemLabel="entities"
   >
     {viewItems.map((entity) => (
       <div data-cv-id={entity.id.replace(/\.md$/, '')}>

@@ -11,6 +11,7 @@ interface Props {
   basePath: string;
   cardMin?: number;
   emptyMessage?: string;
+  itemLabel?: string;
 }
 
 const {
@@ -20,7 +21,10 @@ const {
   basePath,
   cardMin = 300,
   emptyMessage,
+  itemLabel,
 } = Astro.props;
+
+const countLabel = itemLabel || 'items';
 
 const filterGroups = filters.filter((filter) => filter.options.length > 0);
 
@@ -79,7 +83,7 @@ const serialized = {
       <input type="search" class="cv-search" placeholder="Filter..." aria-label="Filter items" data-cv-search />
     </div>
     <div class="cv-count">
-      <span data-cv-count>{items.length}</span> items
+      <span data-cv-count>{items.length}</span> {countLabel}
     </div>
   </div>
 

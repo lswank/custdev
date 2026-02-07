@@ -7,9 +7,16 @@ const { level } = Astro.props;
 
 const titleCase = (str: string) =>
   str.replace(/\b\w/g, (c) => c.toUpperCase());
+
+const levelDescriptions: Record<string, string> = {
+  hypothesis: 'Untested assumption — needs validation',
+  tested: 'Validated with some evidence',
+  proven: 'Strong evidence, repeatable results',
+  canonical: 'Institutionalized — this is how we do it',
+};
 ---
 
-<span class:list={['confidence-badge', `level--${level}`]}>
+<span class:list={['confidence-badge', `level--${level}`]} title={levelDescriptions[level]}>
   {titleCase(level)}
 </span>
 

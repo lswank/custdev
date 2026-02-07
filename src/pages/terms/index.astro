@@ -35,6 +35,7 @@ const filters: FilterDef[] = [
     filters={filters}
     basePath="/terms"
     emptyMessage="No terms found."
+    itemLabel="terms"
   >
     {sorted.map((term) => (
       <div data-cv-id={term.id.replace(/\.md$/, '')}>

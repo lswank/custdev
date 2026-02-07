@@ -34,6 +34,7 @@ const filters: FilterDef[] = [
     basePath="/products"
     cardMin={350}
     emptyMessage="No products configured yet."
+    itemLabel="products"
   >
     {products.map((product) => (
       <div data-cv-id={product.id.replace(/\.md$/, '')}>

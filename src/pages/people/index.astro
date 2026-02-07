@@ -52,6 +52,7 @@ const filters: FilterDef[] = [
     filters={filters}
     basePath="/people"
     emptyMessage="No team members yet."
+    itemLabel="people"
   >
     {viewItems.map((person) => (
       <div data-cv-id={person.id.replace(/\.md$/, '')}>

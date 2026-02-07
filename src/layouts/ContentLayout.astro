@@ -12,7 +12,17 @@ const { title, description, breadcrumbs = [] } = Astro.props;
 ---
 
 <BaseLayout title={title} description={description}>
-  {breadcrumbs.length > 0 && <Breadcrumb items={breadcrumbs} />}
+  <div class="content-header-row">
+    {breadcrumbs.length > 0 && <Breadcrumb items={breadcrumbs} />}
+    <button class="copy-md-btn" type="button" aria-label="Copy page content as text">
+      <svg class="copy-md-icon" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true">
+        <rect x="9" y="9" width="13" height="13" rx="2" ry="2"/>
+        <path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/>
+      </svg>
+      <span class="copy-md-label">Copy</span>
+      <span class="copy-md-feedback" aria-live="polite"></span>
+    </button>
+  </div>
   <div class="content-layout">
     <article class="content-main">
       <slot />
@@ -23,7 +33,84 @@ const { title, description, breadcrumbs = [] } = Astro.props;
   </div>
 </BaseLayout>
 
+<script is:inline>
+  (function () {
+    var btn = document.querySelector('.copy-md-btn');
+    if (!btn) return;
+    var label = btn.querySelector('.copy-md-label');
+    var feedback = btn.querySelector('.copy-md-feedback');
+    var icon = btn.querySelector('.copy-md-icon');
+    var timer;
+
+    btn.addEventListener('click', function () {
+      var article = document.querySelector('.content-main');
+      if (!article) return;
+      var text = article.innerText;
+      navigator.clipboard.writeText(text).then(function () {
+        label.textContent = '';
+        feedback.textContent = 'Copied!';
+        icon.style.display = 'none';
+        btn.classList.add('copy-md-btn--copied');
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+          label.textContent = 'Copy';
+          feedback.textContent = '';
+          icon.style.display = '';
+          btn.classList.remove('copy-md-btn--copied');
+        }, 1500);
+      });
+    });
+  })();
+</script>
+
 <style>
+  .content-header-row {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--space-4);
+    margin-bottom: var(--space-2);
+  }
+
+  .content-header-row :global(.breadcrumb) {
+    margin-bottom: 0;
+  }
+
+  .copy-md-btn {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--space-1);
+    padding: var(--space-1) var(--space-2);
+    font-size: var(--text-xs);
+    font-family: inherit;
+    color: var(--color-text-muted);
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-sm);
+    cursor: pointer;
+    white-space: nowrap;
+    transition: color var(--transition-fast), border-color var(--transition-fast), background var(--transition-fast);
+    flex-shrink: 0;
+  }
+
+  .copy-md-btn:hover {
+    color: var(--color-text);
+    border-color: var(--color-text-muted);
+  }
+
+  .copy-md-btn--copied {
+    color: var(--color-creation);
+    border-color: var(--color-creation);
+  }
+
+  .copy-md-icon {
+    flex-shrink: 0;
+  }
+
+  .copy-md-feedback {
+    font-size: var(--text-xs);
+  }
+
   .content-layout {
     display: grid;
     grid-template-columns: 1fr var(--sidebar-width);

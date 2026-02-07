@@ -115,32 +115,47 @@ const breadcrumbs = [
     </section>
   )}
 
+  {relatedTerms.length > 0 && (
+    <section class="related-terms-section">
+      <h2>Related Terms</h2>
+      <div class="related-terms-list">
+        {relatedTerms.map((related) => (
+          <a href={`/terms/${related.id.replace(/\.md$/, '')}`} class="related-term-pill">
+            {related.data.name}
+          </a>
+        ))}
+      </div>
+    </section>
+  )}
+
   {versions.length > 0 && (
     <section class="version-history">
-      <h2>Version History</h2>
-      <div class="timeline">
-        {versions.map(async (v) => {
-          const { Content: VersionContent } = await v.render();
-          const versionAuthor = people.find((p) => p.data.name === v.data.author || p.id.replace(/\.md$/, '') === v.data.author);
-          return (
-            <div class="timeline-entry" data-phase={v.data.phase || term.data.custdev_phase}>
-              <div class="timeline-header">
-                <strong>v{v.data.version}</strong>
-                <time>{v.data.date.toLocaleDateString()}</time>
-                <span class="author">
-                  {versionAuthor
-                    ? <a href={`/people/${versionAuthor.id.replace(/\.md$/, '')}`}>{v.data.author}</a>
-                    : v.data.author
-                  }
-                </span>
+      <details>
+        <summary>Version History ({versions.length} {versions.length === 1 ? 'version' : 'versions'})</summary>
+        <div class="timeline">
+          {versions.map(async (v) => {
+            const { Content: VersionContent } = await v.render();
+            const versionAuthor = people.find((p) => p.data.name === v.data.author || p.id.replace(/\.md$/, '') === v.data.author);
+            return (
+              <div class="timeline-entry" data-phase={v.data.phase || term.data.custdev_phase}>
+                <div class="timeline-header">
+                  <strong>v{v.data.version}</strong>
+                  <time>{v.data.date.toLocaleDateString()}</time>
+                  <span class="author">
+                    {versionAuthor
+                      ? <a href={`/people/${versionAuthor.id.replace(/\.md$/, '')}`}>{v.data.author}</a>
+                      : v.data.author
+                    }
+                  </span>
+                </div>
+                <p class="change-summary">{v.data.change_summary}</p>
+                <p class="trigger"><em>Trigger: {v.data.custdev_trigger}</em></p>
+                <VersionContent />
               </div>
-              <p class="change-summary">{v.data.change_summary}</p>
-              <p class="trigger"><em>Trigger: {v.data.custdev_trigger}</em></p>
-              <VersionContent />
-            </div>
-          );
-        })}
-      </div>
+            );
+          })}
+        </div>
+      </details>
     </section>
   )}
 
@@ -247,8 +262,84 @@ const breadcrumbs = [
     margin-bottom: var(--space-4);
   }
 
+  .related-terms-section {
+    margin-top: var(--space-8);
+  }
+
+  .related-terms-list {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--space-2);
+    margin-top: var(--space-3);
+  }
+
+  .related-term-pill {
+    display: inline-block;
+    font-size: var(--text-sm);
+    padding: 0.3em 0.8em;
+    background: var(--color-bg-secondary);
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-full);
+    color: var(--color-link);
+    text-decoration: none;
+    transition: all 0.15s ease;
+  }
+
+  .related-term-pill:hover {
+    background: var(--color-link);
+    color: white;
+    border-color: var(--color-link);
+  }
+
   .version-history {
     margin-top: var(--space-8);
+  }
+
+  .version-history details {
+    border: 1px solid var(--color-border);
+    border-radius: var(--radius-md);
+    overflow: hidden;
+  }
+
+  .version-history summary {
+    font-size: var(--text-xl);
+    font-weight: 700;
+    padding: var(--space-4) var(--space-6);
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: var(--space-3);
+    color: var(--color-text);
+    background: var(--color-bg-secondary);
+    user-select: none;
+  }
+
+  .version-history summary::-webkit-details-marker {
+    display: none;
+  }
+
+  .version-history summary::before {
+    content: '\25B6';
+    font-size: var(--text-xs);
+    transition: transform 0.2s ease;
+    color: var(--color-text-muted);
+  }
+
+  .version-history details[open] > summary::before {
+    transform: rotate(90deg);
+  }
+
+  .version-history summary:hover {
+    background: var(--color-bg);
+  }
+
+  .version-history details[open] > summary {
+    border-bottom: 1px solid var(--color-border);
+  }
+
+  .version-history .timeline {
+    padding: var(--space-6);
   }
 
   .timeline-entry {

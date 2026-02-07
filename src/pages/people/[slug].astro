@@ -24,6 +24,10 @@ const reportsTo = person.data.reports_to
 const terms = await getCollection('terms');
 const ownedTerms = terms.filter((t) => t.data.owner === person.data.name || t.data.owner === slug);
 
+// Get owned processes
+const processes = await getCollection('processes');
+const ownedProcesses = processes.filter((p) => p.data.owner === person.data.name || p.data.owner === slug);
+
 // Get contributed repos
 const repositories = await getCollection('repositories');
 const contributedRepos = repositories.filter((r) =>
@@ -103,6 +107,19 @@ const breadcrumbs = [
         {ownedTerms.map((term) => (
           <li>
             <a href={`/terms/${term.id.replace(/\.md$/, '')}`}>{term.data.name}</a>
+          </li>
+        ))}
+      </ul>
+    </section>
+  )}
+
+  {ownedProcesses.length > 0 && (
+    <section class="owned-processes-section">
+      <h2>Owned Processes ({ownedProcesses.length})</h2>
+      <ul class="linked-list">
+        {ownedProcesses.map((proc) => (
+          <li>
+            <a href={`/processes/${proc.id.replace(/\.md$/, '')}`}>{proc.data.title}</a>
           </li>
         ))}
       </ul>
@@ -345,6 +362,7 @@ const breadcrumbs = [
 
   .expertise-section,
   .owned-terms-section,
+  .owned-processes-section,
   .repos-section,
   .history-section {
     margin: var(--space-8) 0;

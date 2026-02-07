@@ -16,6 +16,9 @@ if (!product) {
 
 const { Content } = await product.render();
 
+// Get people for team member linking
+const people = await getCollection('people');
+
 // Get all definitions scoped to this product
 const allDefinitions = await getCollection('definitions');
 const productDefs = allDefinitions.filter((d) => d.data.product === slug);
@@ -81,7 +84,20 @@ const breadcrumbs = [
         {product.data.team_members.length > 0 && (
           <>
             <dt>Team</dt>
-            <dd>{product.data.team_members.join(', ')}</dd>
+            <dd class="team-list">
+              {product.data.team_members.map((member, i) => {
+                const memberPerson = people.find((p) => p.data.name === member || p.id.replace(/\.md$/, '') === member);
+                return (
+                  <>
+                    {i > 0 && ', '}
+                    {memberPerson
+                      ? <a href={`/people/${memberPerson.id.replace(/\.md$/, '')}`}>{member}</a>
+                      : member
+                    }
+                  </>
+                );
+              })}
+            </dd>
           </>
         )}
       </dl>

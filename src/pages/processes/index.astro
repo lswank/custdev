@@ -38,6 +38,7 @@ const filters: FilterDef[] = [
     filters={filters}
     basePath="/processes"
     emptyMessage="No processes yet."
+    itemLabel="processes"
   >
     {sorted.map((process) => (
       <div data-cv-id={process.id.replace(/\.md$/, '')}>

@@ -84,7 +84,20 @@ const breadcrumbs = [
         {adr.data.deciders.length > 0 && (
           <>
             <dt>Deciders</dt>
-            <dd>{adr.data.deciders.join(', ')}</dd>
+            <dd>
+              {adr.data.deciders.map((decider, i) => {
+                const deciderPerson = people.find((p) => p.data.name === decider || p.id.replace(/\.md$/, '') === decider);
+                return (
+                  <>
+                    {i > 0 && ', '}
+                    {deciderPerson
+                      ? <a href={`/people/${deciderPerson.id.replace(/\.md$/, '')}`}>{decider}</a>
+                      : decider
+                    }
+                  </>
+                );
+              })}
+            </dd>
           </>
         )}
         {adr.data.tags.length > 0 && (

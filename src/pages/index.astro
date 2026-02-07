@@ -1,6 +1,7 @@
 ---
 import BaseLayout from '../layouts/BaseLayout.astro';
 import PhaseIndicator from '../components/PhaseIndicator.astro';
+import Tooltip from '../components/Tooltip.astro';
 import { getCollection } from 'astro:content';
 import { getSiteConfig } from '../lib/config.js';
 
@@ -66,8 +67,8 @@ const recentTerms = [...terms]
   })
   .slice(0, 8);
 
-// Popular search suggestions
-const popularSearches = ['MVP', 'Customer', 'Product-Market Fit', 'Validation', 'Hypothesis'];
+// Search suggestions
+const suggestedSearches = ['MVP', 'Customer', 'Product-Market Fit', 'Validation', 'Hypothesis'];
 ---
 
 <BaseLayout title={`${config.wiki.title} — ${config.company.name}`}>
@@ -91,19 +92,25 @@ const popularSearches = ['MVP', 'Customer', 'Product-Market Fit', 'Validation', 
     </form>
 
     <div class="search-suggestions">
-      <span class="suggestions-label">Popular:</span>
-      {popularSearches.map((query) => (
+      <span class="suggestions-label">Suggested:</span>
+      {suggestedSearches.map((query) => (
         <a href={`/search?q=${encodeURIComponent(query)}`} class="suggestion-pill">{query}</a>
       ))}
     </div>
 
     <!-- Compact health metrics -->
     <div class="health-metrics">
-      <span class="metric"><strong>{totalTerms}</strong> terms</span>
-      <span class="metric-separator">·</span>
-      <span class="metric"><strong>{coveragePercent}%</strong> coverage</span>
-      <span class="metric-separator">·</span>
-      <span class="metric"><strong>{activePeople}</strong> contributors</span>
+      <Tooltip text="Total vocabulary entries tracked in the wiki">
+        <span class="metric"><strong>{totalTerms}</strong> terms</span>
+      </Tooltip>
+      <span class="metric-separator">&middot;</span>
+      <Tooltip text="Percentage of terms with a global definition">
+        <a href="/terms" class="metric metric-link"><strong>{coveragePercent}%</strong> coverage</a>
+      </Tooltip>
+      <span class="metric-separator">&middot;</span>
+      <Tooltip text="Active team members in the wiki">
+        <a href="/people" class="metric metric-link"><strong>{activePeople}</strong> contributors</a>
+      </Tooltip>
     </div>
   </section>
 
@@ -295,6 +302,17 @@ const popularSearches = ['MVP', 'Customer', 'Product-Market Fit', 'Validation', 
   .metric strong {
     color: var(--color-text);
     font-weight: 600;
+  }
+
+  .metric-link {
+    text-decoration: none;
+    color: var(--color-text-muted);
+    transition: color var(--transition-fast);
+  }
+
+  .metric-link:hover {
+    color: var(--color-link);
+    text-decoration: none;
   }
 
   .metric-separator {

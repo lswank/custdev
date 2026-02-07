@@ -37,6 +37,7 @@ const filters: FilterDef[] = [
     filters={filters}
     basePath="/resources"
     emptyMessage="No resources yet."
+    itemLabel="resources"
   >
     {sorted.map((resource) => (
       <div data-cv-id={resource.id.replace(/\.md$/, '')}>
