@@ -4,6 +4,7 @@ import ResourceCard from '../../components/ResourceCard.astro';
 import CollectionView from '../../components/CollectionView.astro';
 import type { ColumnDef, FilterDef } from '../../lib/collection-view';
 import { getCollection } from 'astro:content';
+import { getReviewMeta, getReviewStatus } from '../../lib/review';
 
 const resources = await getCollection('resources');
 const sorted = resources.sort((a, b) => a.data.name.localeCompare(b.data.name));
@@ -14,17 +15,25 @@ const categoryOptions = Array.from(
 const statusOptions = Array.from(
   new Set(sorted.map((resource) => resource.data.status).filter(Boolean))
 ).sort() as string[];
+const reviewStatuses = ['reviewed', 'unreviewed'];
 
 const columns: ColumnDef[] = [
   { key: 'name', label: 'Name', sortable: true, primary: true, type: 'text' },
   { key: 'category', label: 'Category', sortable: true, type: 'text' },
   { key: 'status', label: 'Status', sortable: true, type: 'badge' },
+  { key: 'review_status', label: 'Review', sortable: true, type: 'review', priority: 'low' },
 ];
 
 const filters: FilterDef[] = [
   { key: 'category', label: 'Category', options: categoryOptions },
   { key: 'status', label: 'Status', options: statusOptions },
+  { key: 'review_status', label: 'Review', options: reviewStatuses },
 ];
+
+const rows = sorted.map((resource) => ({
+  ...resource,
+  review_status: getReviewStatus(resource.data),
+}));
 ---
 
 <BaseLayout title="Resources — CustDev Wiki">
@@ -32,14 +41,14 @@ const filters: FilterDef[] = [
   <p class="subtitle">Tools, services, and platforms powering the team.</p>
 
   <CollectionView
-    items={sorted}
+    items={rows}
     columns={columns}
     filters={filters}
     basePath="/resources"
     emptyMessage="No resources yet."
     itemLabel="resources"
   >
-    {sorted.map((resource) => (
+    {rows.map((resource) => (
       <div data-cv-id={resource.id.replace(/\.md$/, '')}>
         <ResourceCard
           name={resource.data.name}
@@ -47,6 +56,7 @@ const filters: FilterDef[] = [
           category={resource.data.category}
           status={resource.data.status}
           url={resource.data.url}
+          reviewed={getReviewMeta(resource.data).reviewed}
         />
       </div>
     ))}

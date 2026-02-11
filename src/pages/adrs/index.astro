@@ -4,24 +4,32 @@ import AdrCard from '../../components/AdrCard.astro';
 import CollectionView from '../../components/CollectionView.astro';
 import type { ColumnDef, FilterDef } from '../../lib/collection-view';
 import { getCollection } from 'astro:content';
+import { getReviewMeta, getReviewStatus } from '../../lib/review';
 
 const adrs = await getCollection('adrs');
 const sorted = adrs.sort((a, b) => b.data.number - a.data.number);
-const viewItems = sorted.map((adr) => ({ ...adr, id: String(adr.data.number) }));
+const viewItems = sorted.map((adr) => ({
+  ...adr,
+  id: String(adr.data.number),
+  review_status: getReviewStatus(adr.data),
+}));
 
 const statusOptions = Array.from(
   new Set(sorted.map((adr) => adr.data.status).filter(Boolean))
 ).sort() as string[];
+const reviewStatuses = ['reviewed', 'unreviewed'];
 
 const columns: ColumnDef[] = [
   { key: 'number', label: 'Number', sortable: true, type: 'number' },
   { key: 'title', label: 'Title', sortable: true, primary: true, type: 'text' },
   { key: 'status', label: 'Status', sortable: true, type: 'badge' },
+  { key: 'review_status', label: 'Review', sortable: true, type: 'review', priority: 'low' },
   { key: 'date', label: 'Date', sortable: true, type: 'date', priority: 'low' },
 ];
 
 const filters: FilterDef[] = [
   { key: 'status', label: 'Status', options: statusOptions },
+  { key: 'review_status', label: 'Review', options: reviewStatuses },
 ];
 ---
 
@@ -44,6 +52,7 @@ const filters: FilterDef[] = [
           number={adr.data.number}
           status={adr.data.status}
           date={adr.data.date}
+          reviewed={getReviewMeta(adr.data).reviewed}
         />
       </div>
     ))}

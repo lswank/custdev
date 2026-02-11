@@ -3,7 +3,7 @@ export interface ColumnDef {
   label: string;
   sortable?: boolean;
   primary?: boolean;
-  type?: 'text' | 'badge' | 'phase' | 'date' | 'number' | 'tag-list';
+  type?: 'text' | 'badge' | 'phase' | 'date' | 'number' | 'tag-list' | 'review';
   priority?: 'high' | 'low';
 }
 

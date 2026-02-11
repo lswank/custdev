@@ -1,5 +1,6 @@
 ---
 import StatusBadge from './StatusBadge.astro';
+import ReviewBadge from './ReviewBadge.astro';
 
 interface Props {
   name: string;
@@ -7,9 +8,10 @@ interface Props {
   role: string;
   status: string;
   expertise: string[];
+  reviewed?: boolean;
 }
 
-const { name, slug, role, status, expertise } = Astro.props;
+const { name, slug, role, status, expertise, reviewed = false } = Astro.props;
 
 // Generate initials for avatar placeholder
 const initials = name
@@ -30,6 +32,7 @@ const initials = name
   </div>
   <div class="person-meta">
     <StatusBadge status={status} />
+    <ReviewBadge reviewed={reviewed} />
   </div>
   {expertise.length > 0 && (
     <ul class="expertise-list">

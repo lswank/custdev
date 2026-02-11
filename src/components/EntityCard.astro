@@ -1,5 +1,6 @@
 ---
 import StatusBadge from './StatusBadge.astro';
+import ReviewBadge from './ReviewBadge.astro';
 import { getStatusColor } from '../lib/phase-colors';
 
 interface Props {
@@ -10,9 +11,10 @@ interface Props {
   relationship?: string;
   entity_type?: string;
   parent?: string;
+  reviewed?: boolean;
 }
 
-const { name, slug, status, jurisdiction, relationship, entity_type, parent } = Astro.props;
+const { name, slug, status, jurisdiction, relationship, entity_type, parent, reviewed = false } = Astro.props;
 
 const statusColor = status ? getStatusColor(status) : undefined;
 ---
@@ -34,6 +36,7 @@ const statusColor = status ? getStatusColor(status) : undefined;
   </div>
   <div class="entity-meta">
     {status && <StatusBadge status={status} />}
+    <ReviewBadge reviewed={reviewed} />
     {entity_type && <span class="entity-type-badge">{entity_type.replace(/-/g, ' ')}</span>}
   </div>
   <div class="entity-details">

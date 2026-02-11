@@ -3,7 +3,9 @@ import ContentLayout from '../../layouts/ContentLayout.astro';
 import PhaseIndicator from '../../components/PhaseIndicator.astro';
 import StatusBadge from '../../components/StatusBadge.astro';
 import TermCard from '../../components/TermCard.astro';
+import ReviewBanner from '../../components/ReviewBanner.astro';
 import { getCollection } from 'astro:content';
+import { getReviewMeta } from '../../lib/review';
 
 const { slug } = Astro.params;
 
@@ -33,6 +35,8 @@ const breadcrumbs = [
   { label: 'Products', href: '/products' },
   { label: product.data.name },
 ];
+
+const reviewMeta = getReviewMeta(product.data);
 ---
 
 <ContentLayout
@@ -47,6 +51,12 @@ const breadcrumbs = [
     </div>
     <p class="description">{product.data.description}</p>
   </div>
+
+  <ReviewBanner
+    reviewed={reviewMeta.reviewed}
+    reviewedAt={reviewMeta.reviewedAt}
+    reviewedBy={reviewMeta.reviewedBy}
+  />
 
   <article class="product-content">
     <Content />
@@ -65,6 +75,7 @@ const breadcrumbs = [
             slug={term.id.replace(/\.md$/, '')}
             phase={term.data.custdev_phase}
             status={term.data.status}
+            reviewed={getReviewMeta(term.data).reviewed}
           />
         ))}
       </div>

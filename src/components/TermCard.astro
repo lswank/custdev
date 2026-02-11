@@ -1,6 +1,7 @@
 ---
 import PhaseIndicator from './PhaseIndicator.astro';
 import StatusBadge from './StatusBadge.astro';
+import ReviewBadge from './ReviewBadge.astro';
 import { getPhaseColor } from '../lib/phase-colors';
 
 interface Props {
@@ -9,9 +10,10 @@ interface Props {
   phase: string;
   status: string;
   aliases?: string[];
+  reviewed?: boolean;
 }
 
-const { name, slug, phase, status, aliases } = Astro.props;
+const { name, slug, phase, status, aliases, reviewed = false } = Astro.props;
 
 const borderColor = getPhaseColor(phase);
 ---
@@ -21,6 +23,7 @@ const borderColor = getPhaseColor(phase);
   <div class="term-meta">
     <PhaseIndicator phase={phase as any} size="small" />
     <StatusBadge status={status} />
+    <ReviewBadge reviewed={reviewed} />
   </div>
   {aliases && aliases.length > 0 && (
     <p class="term-aliases">

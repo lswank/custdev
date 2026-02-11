@@ -1,5 +1,6 @@
 ---
 import StatusBadge from './StatusBadge.astro';
+import ReviewBadge from './ReviewBadge.astro';
 import { getStatusColor } from '../lib/phase-colors';
 
 interface Props {
@@ -7,9 +8,10 @@ interface Props {
   number: number;
   status: string;
   date: Date;
+  reviewed?: boolean;
 }
 
-const { title, number, status, date } = Astro.props;
+const { title, number, status, date, reviewed = false } = Astro.props;
 
 const formattedDate = new Date(date).toLocaleDateString('en-US', {
   year: 'numeric',
@@ -44,6 +46,7 @@ const statusIcon = statusIcons[status] || '';
   </div>
   <div class="adr-meta">
     <StatusBadge status={status} />
+    <ReviewBadge reviewed={reviewed} />
     <span class="adr-date">{formattedDate}</span>
   </div>
 </a>

@@ -1,7 +1,9 @@
 ---
 import ContentLayout from '../../layouts/ContentLayout.astro';
 import StatusBadge from '../../components/StatusBadge.astro';
+import ReviewBanner from '../../components/ReviewBanner.astro';
 import { getCollection } from 'astro:content';
+import { getReviewMeta } from '../../lib/review';
 
 const { slug } = Astro.params;
 
@@ -62,6 +64,8 @@ const breadcrumbs = [
   { label: 'Team', href: '/people' },
   { label: person.data.name },
 ];
+
+const reviewMeta = getReviewMeta(person.data);
 ---
 
 <ContentLayout
@@ -88,6 +92,12 @@ const breadcrumbs = [
       </div>
     </div>
   </div>
+
+  <ReviewBanner
+    reviewed={reviewMeta.reviewed}
+    reviewedAt={reviewMeta.reviewedAt}
+    reviewedBy={reviewMeta.reviewedBy}
+  />
 
   {person.data.expertise.length > 0 && (
     <section class="expertise-section">

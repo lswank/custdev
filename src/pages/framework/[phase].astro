@@ -2,8 +2,10 @@
 import ContentLayout from '../../layouts/ContentLayout.astro';
 import PhaseIndicator from '../../components/PhaseIndicator.astro';
 import TermCard from '../../components/TermCard.astro';
+import ReviewBanner from '../../components/ReviewBanner.astro';
 import { getCollection } from 'astro:content';
 import { getSiteConfig } from '../../lib/config.js';
+import { getReviewMeta } from '../../lib/review';
 
 const { phase } = Astro.params;
 
@@ -36,6 +38,8 @@ const breadcrumbs = [
   { label: 'Framework', href: '/framework' },
   { label: phaseConfig.label },
 ];
+
+const reviewMeta = getReviewMeta(frameworkPage.data);
 ---
 
 <ContentLayout
@@ -46,6 +50,12 @@ const breadcrumbs = [
     <PhaseIndicator phase={phase as any} />
     <h1>{phaseConfig.label}</h1>
   </div>
+
+  <ReviewBanner
+    reviewed={reviewMeta.reviewed}
+    reviewedAt={reviewMeta.reviewedAt}
+    reviewedBy={reviewMeta.reviewedBy}
+  />
 
   <article class="phase-content">
     <Content />
@@ -62,6 +72,7 @@ const breadcrumbs = [
             phase={term.data.custdev_phase}
             status={term.data.status}
             aliases={term.data.aliases}
+            reviewed={getReviewMeta(term.data).reviewed}
           />
         ))}
       </div>

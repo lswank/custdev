@@ -1,7 +1,9 @@
 ---
 import ContentLayout from '../../layouts/ContentLayout.astro';
 import StatusBadge from '../../components/StatusBadge.astro';
+import ReviewBanner from '../../components/ReviewBanner.astro';
 import { getCollection } from 'astro:content';
+import { getReviewMeta } from '../../lib/review';
 
 const { slug } = Astro.params;
 
@@ -28,6 +30,8 @@ const breadcrumbs = [
   { label: 'Entities', href: '/entities' },
   { label: entity.data.name },
 ];
+
+const reviewMeta = getReviewMeta(entity.data);
 ---
 
 <ContentLayout title={`${entity.data.name} — CustDev Wiki`} breadcrumbs={breadcrumbs}>
@@ -49,6 +53,12 @@ const breadcrumbs = [
       <p class="entity-type">{entity.data.entity_type.replace(/-/g, ' ')}</p>
     )}
   </div>
+
+  <ReviewBanner
+    reviewed={reviewMeta.reviewed}
+    reviewedAt={reviewMeta.reviewedAt}
+    reviewedBy={reviewMeta.reviewedBy}
+  />
 
   <article class="entity-content" data-pagefind-body>
     <Content />

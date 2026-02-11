@@ -4,6 +4,7 @@ import ProcessCard from '../../components/ProcessCard.astro';
 import CollectionView from '../../components/CollectionView.astro';
 import type { ColumnDef, FilterDef } from '../../lib/collection-view';
 import { getCollection } from 'astro:content';
+import { getReviewMeta, getReviewStatus } from '../../lib/review';
 
 const processes = await getCollection('processes');
 const sorted = processes.sort((a, b) => a.data.title.localeCompare(b.data.title));
@@ -14,18 +15,26 @@ const categoryOptions = Array.from(
 const statusOptions = Array.from(
   new Set(sorted.map((process) => process.data.status).filter(Boolean))
 ).sort() as string[];
+const reviewStatuses = ['reviewed', 'unreviewed'];
 
 const columns: ColumnDef[] = [
   { key: 'title', label: 'Title', sortable: true, primary: true, type: 'text' },
   { key: 'category', label: 'Category', sortable: true, type: 'text' },
   { key: 'status', label: 'Status', sortable: true, type: 'badge' },
+  { key: 'review_status', label: 'Review', sortable: true, type: 'review', priority: 'low' },
   { key: 'owner', label: 'Owner', sortable: true, type: 'text', priority: 'low' },
 ];
 
 const filters: FilterDef[] = [
   { key: 'category', label: 'Category', options: categoryOptions },
   { key: 'status', label: 'Status', options: statusOptions },
+  { key: 'review_status', label: 'Review', options: reviewStatuses },
 ];
+
+const rows = sorted.map((process) => ({
+  ...process,
+  review_status: getReviewStatus(process.data),
+}));
 ---
 
 <BaseLayout title="Processes — CustDev Wiki">
@@ -33,14 +42,14 @@ const filters: FilterDef[] = [
   <p class="subtitle">Documented workflows and operational playbooks.</p>
 
   <CollectionView
-    items={sorted}
+    items={rows}
     columns={columns}
     filters={filters}
     basePath="/processes"
     emptyMessage="No processes yet."
     itemLabel="processes"
   >
-    {sorted.map((process) => (
+    {rows.map((process) => (
       <div data-cv-id={process.id.replace(/\.md$/, '')}>
         <ProcessCard
           title={process.data.title}
@@ -48,6 +57,7 @@ const filters: FilterDef[] = [
           category={process.data.category}
           status={process.data.status}
           owner={process.data.owner}
+          reviewed={getReviewMeta(process.data).reviewed}
         />
       </div>
     ))}

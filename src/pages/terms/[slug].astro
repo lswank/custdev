@@ -4,7 +4,9 @@ import PhaseIndicator from '../../components/PhaseIndicator.astro';
 import StatusBadge from '../../components/StatusBadge.astro';
 import ConfidenceBadge from '../../components/ConfidenceBadge.astro';
 import TagList from '../../components/TagList.astro';
+import ReviewBanner from '../../components/ReviewBanner.astro';
 import { getCollection } from 'astro:content';
+import { getReviewMeta } from '../../lib/review';
 
 const { slug } = Astro.params;
 
@@ -47,6 +49,8 @@ const breadcrumbs = [
   { label: 'Terms', href: '/terms' },
   { label: term.data.name },
 ];
+
+const reviewMeta = getReviewMeta(term.data);
 ---
 
 <ContentLayout
@@ -63,6 +67,12 @@ const breadcrumbs = [
       <p class="aliases">Also known as: {term.data.aliases.join(', ')}</p>
     )}
   </div>
+
+  <ReviewBanner
+    reviewed={reviewMeta.reviewed}
+    reviewedAt={reviewMeta.reviewedAt}
+    reviewedBy={reviewMeta.reviewedBy}
+  />
 
   <article class="term-content" data-pagefind-body>
     <Content />

@@ -1,7 +1,9 @@
 ---
 import ContentLayout from '../../layouts/ContentLayout.astro';
 import StatusBadge from '../../components/StatusBadge.astro';
+import ReviewBanner from '../../components/ReviewBanner.astro';
 import { getCollection } from 'astro:content';
+import { getReviewMeta } from '../../lib/review';
 
 const { slug } = Astro.params;
 
@@ -31,6 +33,8 @@ const breadcrumbs = [
   { label: 'Repositories', href: '/repositories' },
   { label: repo.data.name },
 ];
+
+const reviewMeta = getReviewMeta(repo.data);
 ---
 
 <ContentLayout
@@ -45,6 +49,12 @@ const breadcrumbs = [
     </div>
     <p class="description">{repo.data.description}</p>
   </div>
+
+  <ReviewBanner
+    reviewed={reviewMeta.reviewed}
+    reviewedAt={reviewMeta.reviewedAt}
+    reviewedBy={reviewMeta.reviewedBy}
+  />
 
   <div class="repo-links">
     <a href={repo.data.github_url} target="_blank" rel="noopener noreferrer" class="github-link">

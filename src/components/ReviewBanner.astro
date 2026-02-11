@@ -1,0 +1,73 @@
+---
+interface Props {
+  reviewed?: boolean;
+  reviewedAt?: string | null;
+  reviewedBy?: string | null;
+}
+
+const { reviewed = false, reviewedAt = null, reviewedBy = null } = Astro.props;
+---
+
+{!reviewed && (
+  <aside class="review-banner" role="note" aria-live="polite">
+    <div class="review-banner__title">Unverified content</div>
+    <p>
+      This page was generated from Slack dumps + an LLM. Do not treat it as source of truth
+      until a human review is recorded.
+    </p>
+    <p class="review-banner__hint">
+      To mark reviewed, add <code>reviewed_at</code> and <code>reviewed_by</code> in frontmatter
+      via PR.
+    </p>
+    {(reviewedAt || reviewedBy) && (
+      <p class="review-banner__meta">
+        {reviewedBy && <span>Reviewed by {reviewedBy}</span>}
+        {reviewedAt && <span> on {reviewedAt}</span>}
+      </p>
+    )}
+  </aside>
+)}
+
+<style>
+  .review-banner {
+    border: 1px solid rgba(230, 126, 34, 0.4);
+    background: rgba(230, 126, 34, 0.08);
+    padding: 1rem 1.25rem;
+    border-radius: var(--radius-md);
+    margin: 0 0 var(--space-6) 0;
+  }
+
+  .review-banner__title {
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 0.03em;
+    color: #b45309;
+    font-size: 0.8rem;
+    margin-bottom: 0.5rem;
+  }
+
+  .review-banner p {
+    margin: 0.35rem 0;
+  }
+
+  .review-banner__hint {
+    color: var(--color-text-muted);
+    font-size: 0.9rem;
+  }
+
+  .review-banner__meta {
+    font-size: 0.85rem;
+    color: var(--color-text-muted);
+  }
+
+  [data-theme="dark"] .review-banner,
+  :root:not([data-theme="light"]) .review-banner {
+    border-color: rgba(230, 126, 34, 0.55);
+    background: rgba(230, 126, 34, 0.12);
+  }
+
+  [data-theme="dark"] .review-banner__title,
+  :root:not([data-theme="light"]) .review-banner__title {
+    color: #f6b26b;
+  }
+</style>

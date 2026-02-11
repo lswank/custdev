@@ -4,23 +4,32 @@ import ProductCard from '../../components/ProductCard.astro';
 import CollectionView from '../../components/CollectionView.astro';
 import type { ColumnDef, FilterDef } from '../../lib/collection-view';
 import { getCollection } from 'astro:content';
+import { getReviewMeta, getReviewStatus } from '../../lib/review';
 
 const products = await getCollection('products');
 
 const phases = ['discovery', 'validation', 'creation', 'building'];
 const statuses = ['active', 'sunset', 'planned'];
+const reviewStatuses = ['reviewed', 'unreviewed'];
 
 const columns: ColumnDef[] = [
   { key: 'name', label: 'Name', sortable: true, primary: true, type: 'text' },
   { key: 'custdev_phase', label: 'Phase', sortable: true, type: 'phase' },
   { key: 'status', label: 'Status', sortable: true, type: 'badge' },
+  { key: 'review_status', label: 'Review', sortable: true, type: 'review', priority: 'low' },
   { key: 'description', label: 'Description', sortable: false, type: 'text', priority: 'low' },
 ];
 
 const filters: FilterDef[] = [
   { key: 'custdev_phase', label: 'Phase', options: phases },
   { key: 'status', label: 'Status', options: statuses },
+  { key: 'review_status', label: 'Review', options: reviewStatuses },
 ];
+
+const rows = products.map((product) => ({
+  ...product,
+  review_status: getReviewStatus(product.data),
+}));
 ---
 
 <BaseLayout title="Products — CustDev Wiki">
@@ -28,7 +37,7 @@ const filters: FilterDef[] = [
   <p class="subtitle">Each product is a scoping boundary for definitions and terms.</p>
 
   <CollectionView
-    items={products}
+    items={rows}
     columns={columns}
     filters={filters}
     basePath="/products"
@@ -36,7 +45,7 @@ const filters: FilterDef[] = [
     emptyMessage="No products configured yet."
     itemLabel="products"
   >
-    {products.map((product) => (
+    {rows.map((product) => (
       <div data-cv-id={product.id.replace(/\.md$/, '')}>
         <ProductCard
           name={product.data.name}
@@ -44,6 +53,7 @@ const filters: FilterDef[] = [
           phase={product.data.custdev_phase}
           status={product.data.status}
           description={product.data.description}
+          reviewed={getReviewMeta(product.data).reviewed}
         />
       </div>
     ))}

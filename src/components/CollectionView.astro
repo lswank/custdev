@@ -2,6 +2,7 @@
 import PhaseIndicator from './PhaseIndicator.astro';
 import StatusBadge from './StatusBadge.astro';
 import TagList from './TagList.astro';
+import ReviewBadge from './ReviewBadge.astro';
 import type { ColumnDef, FilterDef } from '../lib/collection-view';
 
 interface Props {
@@ -162,6 +163,9 @@ const serialized = {
                 content = isEmpty ? '—' : <PhaseIndicator phase={String(raw)} size="small" />;
               } else if (column.type === 'badge') {
                 content = isEmpty ? '—' : <StatusBadge status={String(raw)} />;
+              } else if (column.type === 'review') {
+                const reviewed = String(raw) === 'reviewed' || raw === true;
+                content = isEmpty ? '—' : <ReviewBadge reviewed={reviewed} />;
               } else if (column.type === 'date') {
                 if (!isEmpty) {
                   const dateValue = raw instanceof Date ? raw : new Date(String(raw));

@@ -4,6 +4,7 @@ import PersonCard from '../../components/PersonCard.astro';
 import CollectionView from '../../components/CollectionView.astro';
 import type { ColumnDef, FilterDef } from '../../lib/collection-view';
 import { getCollection } from 'astro:content';
+import { getReviewMeta, getReviewStatus } from '../../lib/review';
 
 const people = await getCollection('people');
 const sorted = people.sort((a, b) => a.data.name.localeCompare(b.data.name));
@@ -16,10 +17,12 @@ const viewItems = sorted.map((person) => ({
     company_label: person.data.company
       ? entityNameBySlug.get(person.data.company) ?? person.data.company
       : undefined,
+    review_status: getReviewStatus(person.data),
   },
 }));
 
 const statusOptions = ['active', 'alumni', 'contractor'];
+const reviewStatuses = ['reviewed', 'unreviewed'];
 const companyOptions = Array.from(
   new Set(viewItems.map((person) => person.data.company_label).filter(Boolean))
 ).sort() as string[];
@@ -32,6 +35,7 @@ const columns: ColumnDef[] = [
   { key: 'role', label: 'Role', sortable: true, type: 'text' },
   { key: 'company_label', label: 'Company', sortable: true, type: 'text', priority: 'low' },
   { key: 'status', label: 'Status', sortable: true, type: 'badge' },
+  { key: 'review_status', label: 'Review', sortable: true, type: 'review', priority: 'low' },
   { key: 'expertise', label: 'Expertise', sortable: false, type: 'tag-list', priority: 'low' },
 ];
 
@@ -39,6 +43,7 @@ const filters: FilterDef[] = [
   { key: 'status', label: 'Status', options: statusOptions },
   { key: 'company_label', label: 'Company', options: companyOptions },
   { key: 'department', label: 'Department', options: departmentOptions },
+  { key: 'review_status', label: 'Review', options: reviewStatuses },
 ];
 ---
 
@@ -62,6 +67,7 @@ const filters: FilterDef[] = [
           role={person.data.role}
           status={person.data.status}
           expertise={person.data.expertise}
+          reviewed={getReviewMeta(person.data).reviewed}
         />
       </div>
     ))}

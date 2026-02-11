@@ -4,6 +4,7 @@ import EntityCard from '../../components/EntityCard.astro';
 import CollectionView from '../../components/CollectionView.astro';
 import type { ColumnDef, FilterDef } from '../../lib/collection-view';
 import { getCollection } from 'astro:content';
+import { getReviewMeta, getReviewStatus } from '../../lib/review';
 
 const entities = await getCollection('entities');
 const sorted = entities.sort((a, b) => a.data.name.localeCompare(b.data.name));
@@ -15,6 +16,7 @@ const viewItems = sorted.map((entity) => ({
     parent_label: entity.data.parent
       ? nameBySlug.get(entity.data.parent) ?? entity.data.parent
       : undefined,
+    review_status: getReviewStatus(entity.data),
   },
 }));
 
@@ -24,10 +26,12 @@ const statusOptions = Array.from(
 const relationshipOptions = Array.from(
   new Set(sorted.map((entity) => entity.data.relationship).filter(Boolean))
 ).sort() as string[];
+const reviewStatuses = ['reviewed', 'unreviewed'];
 
 const columns: ColumnDef[] = [
   { key: 'name', label: 'Name', sortable: true, primary: true, type: 'text' },
   { key: 'status', label: 'Status', sortable: true, type: 'badge' },
+  { key: 'review_status', label: 'Review', sortable: true, type: 'review', priority: 'low' },
   { key: 'jurisdiction', label: 'Jurisdiction', sortable: true, type: 'text', priority: 'low' },
   { key: 'relationship', label: 'Relationship', sortable: true, type: 'text' },
   { key: 'parent_label', label: 'Parent', sortable: true, type: 'text', priority: 'low' },
@@ -36,6 +40,7 @@ const columns: ColumnDef[] = [
 const filters: FilterDef[] = [
   { key: 'status', label: 'Status', options: statusOptions },
   { key: 'relationship', label: 'Relationship', options: relationshipOptions },
+  { key: 'review_status', label: 'Review', options: reviewStatuses },
 ];
 ---
 
@@ -60,6 +65,7 @@ const filters: FilterDef[] = [
           jurisdiction={entity.data.jurisdiction}
           relationship={entity.data.relationship}
           entity_type={entity.data.entity_type}
+          reviewed={getReviewMeta(entity.data).reviewed}
         />
       </div>
     ))}

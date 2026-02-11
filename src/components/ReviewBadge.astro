@@ -1,0 +1,57 @@
+---
+interface Props {
+  reviewed?: boolean;
+  labelReviewed?: string;
+  labelUnreviewed?: string;
+}
+
+const {
+  reviewed = false,
+  labelReviewed = 'Reviewed',
+  labelUnreviewed = 'Unreviewed',
+} = Astro.props;
+
+const label = reviewed ? labelReviewed : labelUnreviewed;
+const variant = reviewed ? 'reviewed' : 'unreviewed';
+---
+
+<span class={`review-badge review-${variant}`}>{label}</span>
+
+<style>
+  .review-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.35rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 999px;
+    font-size: 0.7rem;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.02em;
+    line-height: 1;
+  }
+
+  .review-unreviewed {
+    background: rgba(230, 126, 34, 0.15);
+    color: #b45309;
+    border: 1px solid rgba(230, 126, 34, 0.35);
+  }
+
+  .review-reviewed {
+    background: rgba(46, 204, 113, 0.15);
+    color: #1f8a4c;
+    border: 1px solid rgba(46, 204, 113, 0.35);
+  }
+
+  [data-theme="dark"] .review-unreviewed,
+  :root:not([data-theme="light"]) .review-unreviewed {
+    color: #f6b26b;
+    border-color: rgba(230, 126, 34, 0.45);
+  }
+
+  [data-theme="dark"] .review-reviewed,
+  :root:not([data-theme="light"]) .review-reviewed {
+    color: #8ce5b1;
+    border-color: rgba(46, 204, 113, 0.45);
+  }
+</style>

@@ -4,6 +4,7 @@ import RepoCard from '../../components/RepoCard.astro';
 import CollectionView from '../../components/CollectionView.astro';
 import type { ColumnDef, FilterDef } from '../../lib/collection-view';
 import { getCollection } from 'astro:content';
+import { getReviewMeta, getReviewStatus } from '../../lib/review';
 
 const repositories = await getCollection('repositories');
 const sorted = repositories.sort((a, b) => a.data.name.localeCompare(b.data.name));
@@ -14,18 +15,26 @@ const languageOptions = Array.from(
 const statusOptions = Array.from(
   new Set(sorted.map((repo) => repo.data.status).filter(Boolean))
 ).sort() as string[];
+const reviewStatuses = ['reviewed', 'unreviewed'];
 
 const columns: ColumnDef[] = [
   { key: 'name', label: 'Name', sortable: true, primary: true, type: 'text' },
   { key: 'language', label: 'Language', sortable: true, type: 'text' },
   { key: 'status', label: 'Status', sortable: true, type: 'badge' },
+  { key: 'review_status', label: 'Review', sortable: true, type: 'review', priority: 'low' },
   { key: 'description', label: 'Description', sortable: false, type: 'text', priority: 'low' },
 ];
 
 const filters: FilterDef[] = [
   { key: 'status', label: 'Status', options: statusOptions },
   { key: 'language', label: 'Language', options: languageOptions },
+  { key: 'review_status', label: 'Review', options: reviewStatuses },
 ];
+
+const rows = sorted.map((repo) => ({
+  ...repo,
+  review_status: getReviewStatus(repo.data),
+}));
 ---
 
 <BaseLayout title="Repositories — CustDev Wiki">
@@ -33,14 +42,14 @@ const filters: FilterDef[] = [
   <p class="subtitle">All codebases, their tech stacks, and contributors.</p>
 
   <CollectionView
-    items={sorted}
+    items={rows}
     columns={columns}
     filters={filters}
     basePath="/repositories"
     emptyMessage="No repositories yet."
     itemLabel="repositories"
   >
-    {sorted.map((repo) => (
+    {rows.map((repo) => (
       <div data-cv-id={repo.id.replace(/\.md$/, '')}>
         <RepoCard
           name={repo.data.name}
@@ -48,6 +57,7 @@ const filters: FilterDef[] = [
           language={repo.data.language}
           description={repo.data.description}
           status={repo.data.status}
+          reviewed={getReviewMeta(repo.data).reviewed}
         />
       </div>
     ))}

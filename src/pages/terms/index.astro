@@ -4,17 +4,20 @@ import TermCard from '../../components/TermCard.astro';
 import CollectionView from '../../components/CollectionView.astro';
 import type { ColumnDef, FilterDef } from '../../lib/collection-view';
 import { getCollection } from 'astro:content';
+import { getReviewMeta, getReviewStatus } from '../../lib/review';
 
 const terms = await getCollection('terms');
 const sorted = terms.sort((a, b) => a.data.name.localeCompare(b.data.name));
 
 const phases = ['discovery', 'validation', 'creation', 'building'];
 const statuses = ['proposed', 'draft', 'in-review', 'published', 'deprecated', 'archived'];
+const reviewStatuses = ['reviewed', 'unreviewed'];
 
 const columns: ColumnDef[] = [
   { key: 'name', label: 'Name', sortable: true, primary: true, type: 'text' },
   { key: 'custdev_phase', label: 'Phase', sortable: true, type: 'phase' },
   { key: 'status', label: 'Status', sortable: true, type: 'badge' },
+  { key: 'review_status', label: 'Review', sortable: true, type: 'review', priority: 'low' },
   { key: 'owner', label: 'Owner', sortable: true, type: 'text', priority: 'low' },
   { key: 'created', label: 'Created', sortable: true, type: 'date', priority: 'low' },
 ];
@@ -22,7 +25,13 @@ const columns: ColumnDef[] = [
 const filters: FilterDef[] = [
   { key: 'custdev_phase', label: 'Phase', options: phases },
   { key: 'status', label: 'Status', options: statuses },
+  { key: 'review_status', label: 'Review', options: reviewStatuses },
 ];
+
+const rows = sorted.map((term) => ({
+  ...term,
+  review_status: getReviewStatus(term.data),
+}));
 ---
 
 <BaseLayout title="Terms — CustDev Wiki">
@@ -30,14 +39,14 @@ const filters: FilterDef[] = [
   <p class="subtitle">Every concept that matters to the organization, defined and versioned.</p>
 
   <CollectionView
-    items={sorted}
+    items={rows}
     columns={columns}
     filters={filters}
     basePath="/terms"
     emptyMessage="No terms found."
     itemLabel="terms"
   >
-    {sorted.map((term) => (
+    {rows.map((term) => (
       <div data-cv-id={term.id.replace(/\.md$/, '')}>
         <TermCard
           name={term.data.name}
@@ -45,6 +54,7 @@ const filters: FilterDef[] = [
           phase={term.data.custdev_phase}
           status={term.data.status}
           aliases={term.data.aliases}
+          reviewed={getReviewMeta(term.data).reviewed}
         />
       </div>
     ))}

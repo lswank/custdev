@@ -1,5 +1,6 @@
 ---
 import StatusBadge from './StatusBadge.astro';
+import ReviewBadge from './ReviewBadge.astro';
 
 interface Props {
   name: string;
@@ -7,9 +8,10 @@ interface Props {
   category: string;
   status: string;
   url?: string;
+  reviewed?: boolean;
 }
 
-const { name, slug, category, status, url } = Astro.props;
+const { name, slug, category, status, url, reviewed = false } = Astro.props;
 
 // Extract domain from URL for favicon
 const domain = url ? new URL(url).hostname : null;
@@ -40,6 +42,7 @@ const domain = url ? new URL(url).hostname : null;
   <div class="resource-meta">
     <StatusBadge status={category} />
     <StatusBadge status={status} />
+    <ReviewBadge reviewed={reviewed} />
   </div>
 </a>
 

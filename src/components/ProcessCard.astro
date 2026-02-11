@@ -1,5 +1,6 @@
 ---
 import StatusBadge from './StatusBadge.astro';
+import ReviewBadge from './ReviewBadge.astro';
 
 interface Props {
   title: string;
@@ -7,9 +8,10 @@ interface Props {
   category: string;
   status: string;
   owner?: string;
+  reviewed?: boolean;
 }
 
-const { title, slug, category, status, owner } = Astro.props;
+const { title, slug, category, status, owner, reviewed = false } = Astro.props;
 
 // Category icons
 const categoryIcons: Record<string, string> = {
@@ -32,6 +34,7 @@ const icon = categoryIcons[category] || categoryIcons.operations;
   <div class="process-meta">
     <StatusBadge status={category} />
     <StatusBadge status={status} />
+    <ReviewBadge reviewed={reviewed} />
   </div>
   {owner && (
     <p class="process-owner">

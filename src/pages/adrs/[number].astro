@@ -1,7 +1,9 @@
 ---
 import ContentLayout from '../../layouts/ContentLayout.astro';
 import StatusBadge from '../../components/StatusBadge.astro';
+import ReviewBanner from '../../components/ReviewBanner.astro';
 import { getCollection } from 'astro:content';
+import { getReviewMeta } from '../../lib/review';
 
 const { number } = Astro.params;
 
@@ -25,6 +27,8 @@ const breadcrumbs = [
   { label: 'ADRs', href: '/adrs' },
   { label: `ADR-${adr.data.number}` },
 ];
+
+const reviewMeta = getReviewMeta(adr.data);
 ---
 
 <ContentLayout
@@ -41,6 +45,12 @@ const breadcrumbs = [
       <time>{adr.data.date.toLocaleDateString()}</time>
     </div>
   </div>
+
+  <ReviewBanner
+    reviewed={reviewMeta.reviewed}
+    reviewedAt={reviewMeta.reviewedAt}
+    reviewedBy={reviewMeta.reviewedBy}
+  />
 
   {deciderPeople.length > 0 && (
     <section class="deciders-section">

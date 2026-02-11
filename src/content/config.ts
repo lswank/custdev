@@ -9,6 +9,8 @@ const terms = defineCollection({
     owner: z.string(),
     created: z.coerce.date(),
     status: z.enum(['proposed', 'draft', 'in-review', 'published', 'deprecated', 'archived']),
+    reviewed_at: z.coerce.date().optional(),
+    reviewed_by: z.string().optional(),
   }),
 });
 
@@ -25,6 +27,8 @@ const definitions = defineCollection({
     status: z.enum(['draft', 'in-review', 'published', 'deprecated', 'archived']),
     override_reason: z.string().optional(),
     last_validated: z.coerce.date().optional(),
+    reviewed_at: z.coerce.date().optional(),
+    reviewed_by: z.string().optional(),
   }),
 });
 
@@ -44,6 +48,8 @@ const methods = defineCollection({
     confidence_level: z.enum(['low', 'medium', 'high']),
     date_validated: z.coerce.date().optional(),
     validator: z.string().optional(),
+    reviewed_at: z.coerce.date().optional(),
+    reviewed_by: z.string().optional(),
   }),
 });
 
@@ -57,6 +63,8 @@ const versions = defineCollection({
     change_summary: z.string(),
     custdev_trigger: z.string(),
     diff_reference: z.string().optional(),
+    reviewed_at: z.coerce.date().optional(),
+    reviewed_by: z.string().optional(),
   }),
 });
 
@@ -69,6 +77,8 @@ const products = defineCollection({
     parent_product: z.string().optional(),
     status: z.enum(['active', 'sunset', 'planned']),
     custdev_phase: z.enum(['discovery', 'validation', 'creation', 'building']),
+    reviewed_at: z.coerce.date().optional(),
+    reviewed_by: z.string().optional(),
   }),
 });
 
@@ -77,6 +87,8 @@ const frameworks = defineCollection({
   schema: z.object({
     title: z.string(),
     order: z.number().optional(),
+    reviewed_at: z.coerce.date().optional(),
+    reviewed_by: z.string().optional(),
   }),
 });
 
@@ -115,6 +127,8 @@ const people = defineCollection({
       notes: z.string().optional(),
     })).default([]),
     status: z.enum(['active', 'alumni', 'contractor']).default('active'),
+    reviewed_at: z.coerce.date().optional(),
+    reviewed_by: z.string().optional(),
   }),
 });
 
@@ -156,6 +170,8 @@ const entities = defineCollection({
     dissolved: z.coerce.date().optional(),
     website: z.string().optional(),
     description: z.string().optional(),
+    reviewed_at: z.coerce.date().optional(),
+    reviewed_by: z.string().optional(),
   }),
 });
 
@@ -168,6 +184,8 @@ const processes = defineCollection({
     tools: z.array(z.string()).default([]),
     status: z.enum(['draft', 'published', 'deprecated']).default('draft'),
     last_updated: z.coerce.date().optional(),
+    reviewed_at: z.coerce.date().optional(),
+    reviewed_by: z.string().optional(),
   }),
 });
 
@@ -180,6 +198,8 @@ const resources = defineCollection({
     owner: z.string().optional(),
     used_by: z.array(z.string()).default([]),
     status: z.enum(['active', 'deprecated', 'evaluating']).default('active'),
+    reviewed_at: z.coerce.date().optional(),
+    reviewed_by: z.string().optional(),
   }),
 });
 
@@ -192,6 +212,8 @@ const adrs = defineCollection({
     date: z.coerce.date(),
     deciders: z.array(z.string()).default([]),
     tags: z.array(z.string()).default([]),
+    reviewed_at: z.coerce.date().optional(),
+    reviewed_by: z.string().optional(),
   }),
 });
 
@@ -205,6 +227,8 @@ const repositories = defineCollection({
     contributors: z.array(z.string()).default([]),
     tech_stack: z.array(z.string()).default([]),
     status: z.enum(['active', 'archived', 'experimental']).default('active'),
+    reviewed_at: z.coerce.date().optional(),
+    reviewed_by: z.string().optional(),
   }),
 });
 

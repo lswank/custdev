@@ -1,7 +1,9 @@
 ---
 import BaseLayout from '../../layouts/BaseLayout.astro';
+import ReviewBanner from '../../components/ReviewBanner.astro';
 import { getCollection } from 'astro:content';
 import { getSiteConfig } from '../../lib/config.js';
+import { getReviewMeta } from '../../lib/review';
 
 const config = getSiteConfig();
 const frameworks = await getCollection('frameworks');
@@ -11,6 +13,7 @@ const phases = frameworks
   .sort((a, b) => (a.data.order || 0) - (b.data.order || 0));
 
 const OverviewContent = overview ? (await overview.render()).Content : null;
+const overviewReview = overview ? getReviewMeta(overview.data) : null;
 ---
 
 <BaseLayout title="Customer Development Framework — CustDev Wiki">
@@ -18,6 +21,13 @@ const OverviewContent = overview ? (await overview.render()).Content : null;
 
   {OverviewContent && (
     <article class="overview">
+      {overviewReview && (
+        <ReviewBanner
+          reviewed={overviewReview.reviewed}
+          reviewedAt={overviewReview.reviewedAt}
+          reviewedBy={overviewReview.reviewedBy}
+        />
+      )}
       <OverviewContent />
     </article>
   )}
